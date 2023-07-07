@@ -1,0 +1,18 @@
+# Yarn
+.yarn
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+
+# Compiler files
+**/cache
+**/node_modules
+**/out
+
+# Ignores broadcast logs
+broadcast
+
+# Dotenv file
+.env

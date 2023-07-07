@@ -1,0 +1,3 @@
+@uniswap/v3-periphery/contracts/=lib/v3-periphery/contracts/
+@uniswap/v2-periphery/contracts/=lib/v2-periphery/contracts/
+@connext/interfaces/=lib/interfaces/

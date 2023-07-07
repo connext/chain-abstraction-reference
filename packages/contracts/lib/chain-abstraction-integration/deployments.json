@@ -1,0 +1,3941 @@
+{
+  "10": [
+    {
+      "name": "optimism",
+      "chainId": "10",
+      "contracts": {
+        "MeanFinanceSource": {
+          "address": "0xFacE86B9F34230624Cf48eb582aFf4BbA970EdCD",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_connext",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_weth",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "inputs": [],
+              "name": "connext",
+              "outputs": [
+                {
+                  "internalType": "contract IConnext",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint24",
+                  "name": "poolFee",
+                  "type": "uint24"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "amountOutMin",
+                  "type": "uint256"
+                }
+              ],
+              "name": "swap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "swapRouter",
+              "outputs": [
+                {
+                  "internalType": "contract ISwapRouter",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "weth",
+              "outputs": [
+                {
+                  "internalType": "contract IWeth",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "target",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "destinationDomain",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "address",
+                  "name": "inputAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "connextAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "connextSlippage",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint24",
+                  "name": "sourcePoolFee",
+                  "type": "uint24"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "sourceAmountOutMin",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "xDeposit",
+              "outputs": [
+                {
+                  "internalType": "bytes32",
+                  "name": "transferId",
+                  "type": "bytes32"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        },
+        "SwapAndXCall": {
+          "address": "0xeB35e251b29166ACD5652E00892AAdEb2b45F5D3",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_connext",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferStarted",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferred",
+              "type": "event"
+            },
+            {
+              "inputs": [],
+              "name": "acceptOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "addSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "name": "allowedSwappers",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "directSwapperCall",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "exactSwap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "owner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "pendingOwner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "removeSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "renounceOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "_destination",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_delegate",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_slippage",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_relayerFee",
+                  "type": "uint256"
+                }
+              ],
+              "name": "swapAndXCall",
+              "outputs": [],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "_destination",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_delegate",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_slippage",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swapAndXCall",
+              "outputs": [],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "transferOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "uniswapSwapRouter",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        },
+        "UniV3Swapper": {
+          "address": "0x1135Cc96A7E9d8f161BE8B6bDB74F896A9658a08",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_uniV3Router",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swapETH",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "uniswapV3Router",
+              "outputs": [
+                {
+                  "internalType": "contract ISmartRouter",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "56": [
+    {
+      "name": "bnb",
+      "chainId": "56",
+      "contracts": {
+        "MidasProtocolTarget": {
+          "address": "0x8eb0e275f52fc7ba0B366D9b539c6EB5ea9162F1",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_connext",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_comptroller",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "sender",
+                  "type": "address"
+                }
+              ],
+              "name": "ForwarderXReceiver__onlyConnext",
+              "type": "error"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "sender",
+                  "type": "address"
+                }
+              ],
+              "name": "ForwarderXReceiver__prepareAndForward_notThis",
+              "type": "error"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                }
+              ],
+              "name": "ForwardedFunctionCallFailed",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "string",
+                  "name": "_errorMessage",
+                  "type": "string"
+                }
+              ],
+              "name": "ForwardedFunctionCallFailed",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "_errorCode",
+                  "type": "uint256"
+                }
+              ],
+              "name": "ForwardedFunctionCallFailed",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "bytes",
+                  "name": "_lowLevelData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "ForwardedFunctionCallFailed",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferStarted",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferred",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "bytes",
+                  "name": "_data",
+                  "type": "bytes"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "_amount",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "address",
+                  "name": "_asset",
+                  "type": "address"
+                }
+              ],
+              "name": "Prepared",
+              "type": "event"
+            },
+            {
+              "inputs": [],
+              "name": "acceptOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "addSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "name": "allowedSwappers",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "comptroller",
+              "outputs": [
+                {
+                  "internalType": "contract IComptroller",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "connext",
+              "outputs": [
+                {
+                  "internalType": "contract IConnext",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "directSwapperCall",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "exactSwap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "owner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "pendingOwner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_data",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_asset",
+                  "type": "address"
+                }
+              ],
+              "name": "prepareAndForward",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "removeSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "renounceOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "transferOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "uniswapSwapRouter",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_asset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "xReceive",
+              "outputs": [
+                {
+                  "internalType": "bytes",
+                  "name": "",
+                  "type": "bytes"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        },
+        "PancakeV3Swapper": {
+          "address": "0x0b081b724CDC4DD9186E64F259b5fC589a4Fd7D0",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_uniV3Router",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swapETH",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "uniswapV3Router",
+              "outputs": [
+                {
+                  "internalType": "contract IPancakeSmartRouter",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        },
+        "SwapAndXCall": {
+          "address": "0x119dd93154780d7604D50014c4545b4906928bFF",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_connext",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferStarted",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferred",
+              "type": "event"
+            },
+            {
+              "inputs": [],
+              "name": "acceptOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "addSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "name": "allowedSwappers",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "directSwapperCall",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "exactSwap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "owner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "pendingOwner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "removeSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "renounceOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "_destination",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_delegate",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_slippage",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_relayerFee",
+                  "type": "uint256"
+                }
+              ],
+              "name": "swapAndXCall",
+              "outputs": [],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "_destination",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_delegate",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_slippage",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swapAndXCall",
+              "outputs": [],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "transferOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "uniswapSwapRouter",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "100": [
+    {
+      "name": "xdai",
+      "chainId": "100",
+      "contracts": {
+        "SwapAndXCall": {
+          "address": "0x29fF6FA6aD04d6E8b420CC45C40ffFF671A36649",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_connext",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferStarted",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferred",
+              "type": "event"
+            },
+            {
+              "inputs": [],
+              "name": "acceptOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "addSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "name": "allowedSwappers",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "directSwapperCall",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "exactSwap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "owner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "pendingOwner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "removeSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "renounceOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "_destination",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_delegate",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_slippage",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_relayerFee",
+                  "type": "uint256"
+                }
+              ],
+              "name": "swapAndXCall",
+              "outputs": [],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "_destination",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_delegate",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_slippage",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swapAndXCall",
+              "outputs": [],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "transferOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "uniswapSwapRouter",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        },
+        "UniV2Swapper": {
+          "address": "0x7b659eF70e18C01d88F305042ae916D235cb8648",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_uniV2Router",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swapETH",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "uniswapV2Router",
+              "outputs": [
+                {
+                  "internalType": "contract IUniswapV2Router02",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "137": [
+    {
+      "name": "polygon",
+      "chainId": "137",
+      "contracts": {
+        "MeanFinanceTarget": {
+          "address": "0xC825d25123Ca8d49066cf8F0AeE164660056e172",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_connext",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_hub",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "sender",
+                  "type": "address"
+                }
+              ],
+              "name": "ForwarderXReceiver__onlyConnext",
+              "type": "error"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "sender",
+                  "type": "address"
+                }
+              ],
+              "name": "ForwarderXReceiver__prepareAndForward_notThis",
+              "type": "error"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "positionID",
+                  "type": "uint256"
+                }
+              ],
+              "name": "Deposited",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                }
+              ],
+              "name": "ForwardedFunctionCallFailed",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "string",
+                  "name": "_errorMessage",
+                  "type": "string"
+                }
+              ],
+              "name": "ForwardedFunctionCallFailed",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "_errorCode",
+                  "type": "uint256"
+                }
+              ],
+              "name": "ForwardedFunctionCallFailed",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "bytes",
+                  "name": "_lowLevelData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "ForwardedFunctionCallFailed",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferStarted",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferred",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "bytes",
+                  "name": "_data",
+                  "type": "bytes"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "_amount",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "address",
+                  "name": "_asset",
+                  "type": "address"
+                }
+              ],
+              "name": "Prepared",
+              "type": "event"
+            },
+            {
+              "inputs": [],
+              "name": "acceptOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "addSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "name": "allowedSwappers",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "connext",
+              "outputs": [
+                {
+                  "internalType": "contract IConnext",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "directSwapperCall",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "exactSwap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "hub",
+              "outputs": [
+                {
+                  "internalType": "contract IDCAHub",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "owner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "pendingOwner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_data",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_asset",
+                  "type": "address"
+                }
+              ],
+              "name": "prepareAndForward",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "removeSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "renounceOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "transferOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "uniswapSwapRouter",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_asset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "xReceive",
+              "outputs": [
+                {
+                  "internalType": "bytes",
+                  "name": "",
+                  "type": "bytes"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        },
+        "MidasProtocolTarget": {
+          "address": "0xDF97CadbcCeE9cfdB12A3e9BB7663E6753A71a0C",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_connext",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_comptroller",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "sender",
+                  "type": "address"
+                }
+              ],
+              "name": "ForwarderXReceiver__onlyConnext",
+              "type": "error"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "sender",
+                  "type": "address"
+                }
+              ],
+              "name": "ForwarderXReceiver__prepareAndForward_notThis",
+              "type": "error"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                }
+              ],
+              "name": "ForwardedFunctionCallFailed",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "string",
+                  "name": "_errorMessage",
+                  "type": "string"
+                }
+              ],
+              "name": "ForwardedFunctionCallFailed",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "_errorCode",
+                  "type": "uint256"
+                }
+              ],
+              "name": "ForwardedFunctionCallFailed",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "bytes",
+                  "name": "_lowLevelData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "ForwardedFunctionCallFailed",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferStarted",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferred",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "bytes",
+                  "name": "_data",
+                  "type": "bytes"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "_amount",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "address",
+                  "name": "_asset",
+                  "type": "address"
+                }
+              ],
+              "name": "Prepared",
+              "type": "event"
+            },
+            {
+              "inputs": [],
+              "name": "acceptOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "addSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "name": "allowedSwappers",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "comptroller",
+              "outputs": [
+                {
+                  "internalType": "contract IComptroller",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "connext",
+              "outputs": [
+                {
+                  "internalType": "contract IConnext",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "directSwapperCall",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "exactSwap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "owner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "pendingOwner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_data",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_asset",
+                  "type": "address"
+                }
+              ],
+              "name": "prepareAndForward",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "removeSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "renounceOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "transferOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "uniswapSwapRouter",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "bytes32",
+                  "name": "_transferId",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_asset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "xReceive",
+              "outputs": [
+                {
+                  "internalType": "bytes",
+                  "name": "",
+                  "type": "bytes"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        },
+        "SwapAndXCall": {
+          "address": "0x6e92344d08F8443a9C704452ac66bEFB90D32E12",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_connext",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferStarted",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferred",
+              "type": "event"
+            },
+            {
+              "inputs": [],
+              "name": "acceptOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "addSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "name": "allowedSwappers",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "directSwapperCall",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "exactSwap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "owner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "pendingOwner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "removeSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "renounceOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "_destination",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_delegate",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_slippage",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_relayerFee",
+                  "type": "uint256"
+                }
+              ],
+              "name": "swapAndXCall",
+              "outputs": [],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "_destination",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_delegate",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_slippage",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swapAndXCall",
+              "outputs": [],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "transferOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "uniswapSwapRouter",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        },
+        "UniV3Swapper": {
+          "address": "0xeC345E9be52f0Fca8aAd6aec3254Ed86151b060d",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_uniV3Router",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swapETH",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "uniswapV3Router",
+              "outputs": [
+                {
+                  "internalType": "contract ISmartRouter",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "31337": [
+    {
+      "name": "hardhat",
+      "chainId": "31337",
+      "contracts": {
+        "MeanFinanceAdapter": {
+          "address": "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_from",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "_amountOfSwaps",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "_swapInterval",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_owner",
+                  "type": "address"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "operator",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "enum IDCAPermissionManager.Permission[]",
+                      "name": "permissions",
+                      "type": "uint8[]"
+                    }
+                  ],
+                  "internalType": "struct IDCAPermissionManager.PermissionSet[]",
+                  "name": "_permissions",
+                  "type": "tuple[]"
+                }
+              ],
+              "name": "deposit",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "_positionId",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "hub",
+              "outputs": [
+                {
+                  "internalType": "contract IDCAHub",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "42161": [
+    {
+      "name": "arbitrum",
+      "chainId": "42161",
+      "contracts": {
+        "SwapAndXCall": {
+          "address": "0xa28DE94d2e6F84659c2C32dF14334Daa08DD6461",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_connext",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferStarted",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "previousOwner",
+                  "type": "address"
+                },
+                {
+                  "indexed": true,
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "OwnershipTransferred",
+              "type": "event"
+            },
+            {
+              "inputs": [],
+              "name": "acceptOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "addSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "name": "allowedSwappers",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "directSwapperCall",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "exactSwap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "owner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "pendingOwner",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                }
+              ],
+              "name": "removeSwapper",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "renounceOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "_destination",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_delegate",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_slippage",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_relayerFee",
+                  "type": "uint256"
+                }
+              ],
+              "name": "swapAndXCall",
+              "outputs": [],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "_destination",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_delegate",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "_slippage",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_callData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swapAndXCall",
+              "outputs": [],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "newOwner",
+                  "type": "address"
+                }
+              ],
+              "name": "transferOwnership",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "uniswapSwapRouter",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        },
+        "UniV3Swapper": {
+          "address": "0x924E679c3c23017aef214c9ea1fBC22e97ff9E2e",
+          "abi": [
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "_uniV3Router",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "constructor"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fromAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swap",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "_amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_toAsset",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "_swapData",
+                  "type": "bytes"
+                }
+              ],
+              "name": "swapETH",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountOut",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "payable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "uniswapV3Router",
+              "outputs": [
+                {
+                  "internalType": "contract ISmartRouter",
+                  "name": "",
+                  "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "stateMutability": "payable",
+              "type": "receive"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
