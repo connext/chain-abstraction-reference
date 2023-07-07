@@ -157,11 +157,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@connext/nxtp-utils@npm:2.0.1":
-  version: 2.0.1
-  resolution: "@connext/nxtp-utils@npm:2.0.1"
+"@connext/nxtp-utils@npm:2.0.2-alpha.8":
+  version: 2.0.2-alpha.8
+  resolution: "@connext/nxtp-utils@npm:2.0.2-alpha.8"
   dependencies:
-    "@maticnetwork/maticjs": 3.6.0-beta.6
+    "@maticnetwork/maticjs": 3.6.0-beta.11
     "@maticnetwork/maticjs-web3": 1.0.4
     "@sinclair/typebox": 0.25.21
     ajv: 8.12.0
@@ -176,7 +176,7 @@ __metadata:
     pino: 8.10.0
     secp256k1: 4.0.3
     sinon-chai: 3.7.0
-  checksum: aa55f55ead5ee5aac07db3034b70f2def45026420325a09a7150f888bdd1b9e909df874f9978ccd421a219245005170a9f6103f2c5aae4ef5d32078a45d8182c
+  checksum: a81a549183d1b5aac61a2163ab047998df047d5c3b5a3e003e87db02cf1df1b4763b45ad1d981da32f25786b9cb5b1814e8e590a797246f13c860db920f9c2f1
   languageName: node
   linkType: hard
 
@@ -219,18 +219,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@connext/sdk@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@connext/sdk@npm:2.0.2"
+"@connext/sdk@npm:2.0.3-alpha.11":
+  version: 2.0.3-alpha.11
+  resolution: "@connext/sdk@npm:2.0.3-alpha.11"
   dependencies:
     "@connext/nxtp-txservice": 2.0.0-alpha.1
-    "@connext/nxtp-utils": 2.0.1
+    "@connext/nxtp-utils": 2.0.2-alpha.8
     "@sinclair/typebox": 0.25.21
     ethers: 5.7.2
     isomorphic-fetch: ^3.0.0
     memoizee: 0.4.15
     typedoc: 0.23.25
-  checksum: e83645b83a8de27aad22df445526723a916d96e586e29f7b1af15f5c0b32626b900f5d69c87c5234ad21c28ff9ddf505171cc2aab90bc4735eab316fa3375829
+  checksum: b7f9c5605fd804d3aa970dc07938bacc32e348d751d4944473305534488d819d3564186a5fce7e5b8aefaaba10c9a1b70e16a37938d14d243f8c78fcef14dede
   languageName: node
   linkType: hard
 
@@ -4954,7 +4954,7 @@ __metadata:
   resolution: "frontend@workspace:packages/frontend"
   dependencies:
     "@connext/chain-abstraction": 1.0.2-alpha.20
-    "@connext/sdk": ^2.0.2
+    "@connext/sdk": 2.0.3-alpha.11
     "@rainbow-me/rainbowkit": 0.12.8
     "@types/node": ^20.3.2
     "@types/react": ^18.2.14

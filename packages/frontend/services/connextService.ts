@@ -60,6 +60,7 @@ export default class ConnextService {
     const relayerFees = await sdkBase.estimateRelayerFee({
       originDomain,
       destinationDomain,
+      isHighPriority: true,
     });
 
     return relayerFees.toString();

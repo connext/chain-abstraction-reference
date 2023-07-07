@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "dependencies": {
     "@connext/chain-abstraction": "1.0.2-alpha.20",
-    "@connext/sdk": "^2.0.2",
+    "@connext/sdk": "2.0.3-alpha.11",
     "@rainbow-me/rainbowkit": "0.12.8",
     "@walletconnect/modal": "^2.5.9",
     "dotenv": "^16.3.1",
