@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { Provider } from '@ethersproject/providers';
 import ERC20ABI from '../abis/ERC20.json';
-import GreeterABI from '../abis/Greeter.json';
+import GreeterABI from '../abis/GreeterABI.json';
 
 export default class ContractService {
   provider: Provider;

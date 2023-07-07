@@ -23,11 +23,12 @@ import "react-toastify/dist/ReactToastify.css";
 import { BigNumberish, ethers, utils, BigNumber } from "ethers";
 import TokenList from "../components/tokenList";
 
-import GreeterTargetABI from "../abis/GreeterTargetABI.json";
+import GreeterABI from "../abis/GreeterABI.json";
 
 const ARBITRUM_PROTOCOL_TOKEN_ADDRESS =
   "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
 const POLYGON_WETH = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
+const POLYGON_TARGET_CONTRACT = "0xb5Ed372Bb3413D5A3d384F73e44EB85618f41455";
 const POLYGON_ADAPTER_CONTRACT = "0xbb54825eB3623daAB431061542d62Fd09Cc20087";
 
 const ChainMapping = [
@@ -331,8 +332,8 @@ const HomePage: NextPage = (pageProps) => {
       const initBlockNumber = 44626788;
       const latestBlockNumber = "latest";
       const targetContract = new ethers.Contract(
-        POLYGON_ADAPTER_CONTRACT,
-        GreeterTargetABI,
+        POLYGON_TARGET_CONTRACT,
+        GreeterABI,
         providers
       );
 
