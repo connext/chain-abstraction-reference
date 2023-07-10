@@ -42,13 +42,13 @@ const ChainMapping = [
 ];
 
 const HomePage: NextPage = (pageProps) => {
-  const { address } = useAccount();
-  console.log("Connected wallet address: ", address);
-
-  const { data: client } = useWalletClient()
-  console.log("Wallet client: ", client);
-
   const { width, height } = useWindowSize();
+
+  const { address } = useAccount();
+  const { data: client } = useWalletClient()
+  const polygonClient = usePublicClient({
+    chainId: POLYGON_CHAIN_ID,
+  });
 
   const [relayerFee, setRelayerFee] = useState<string | undefined>(undefined);
   const [quotedAmountOut, setQuotedAmountOut] = useState<string | null>(null);
@@ -66,9 +66,6 @@ const HomePage: NextPage = (pageProps) => {
 
   const [hash, setHash] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
-  const polygonClient = usePublicClient({
-    chainId: POLYGON_CHAIN_ID,
-  });
 
   useEffect(() => {
     const initServices = async () => {
@@ -122,7 +119,6 @@ const HomePage: NextPage = (pageProps) => {
         abi: GreeterABI,
         eventName: "GreetingUpdated",
         onLogs: logs => {
-          console.log("Saw target contract logs: ", logs);
           setTriggerRead(prevState => !prevState);
         }
       })
@@ -150,7 +146,6 @@ const HomePage: NextPage = (pageProps) => {
     (async () => {
       if (connextService) {
         try {
-          console.log(originDomain, "origin domain");
           // Use the RPC url for the origin chain
           toastNotifier = toast.loading("Submitting Greeting");
           const originChain = connextService.domainToChainID(originDomain);
