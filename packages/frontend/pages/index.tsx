@@ -2,10 +2,11 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useEffect, useState } from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
+import Image from "next/image";
 import styles from '../styles/Home.module.css';
 import ConnextService from '../services/connextService';
 import { SdkConfig } from "@connext/sdk";
-import { useAccount, useWalletClient, usePublicClient } from "wagmi";
+import { useAccount, useWalletClient, usePublicClient, erc20ABI } from "wagmi";
 import { Hex, hexToBigInt } from 'viem';
 import {
   DestinationCallDataParams,
@@ -24,9 +25,16 @@ import TokenList from "../components/tokenList";
 
 import GreeterABI from "../abis/GreeterABI.json";
 
+import ConnextLOGO from "../assets/CONNEXT_LOGO_PRIMARY_LIGHT 1.png";
+import DownArrow from "../assets/chevron_down.png";
+import ETH_LOGO from "../assets/ETH.png";
+import POLYGON_LOGO from "../assets/POLYGON.png";
+
 const ARBITRUM_PROTOCOL_TOKEN_ADDRESS =
   "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+const ARBITRUM_USDC = "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8";
 const POLYGON_CHAIN_ID = 137;
+const POLYGON_DOMAIN_ID = 1886350457;
 const POLYGON_WETH = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
 const POLYGON_TARGET_CONTRACT = "0xb5Ed372Bb3413D5A3d384F73e44EB85618f41455";
 const POLYGON_ADAPTER_CONTRACT = "0xbb54825eB3623daAB431061542d62Fd09Cc20087";
@@ -70,6 +78,9 @@ const HomePage: NextPage = (pageProps) => {
   useEffect(() => {
     const initServices = async () => {
       if (client && address) {
+        const chainId = await client.getChainId();
+        setChainID(chainId);
+
         const sdkConfig: SdkConfig = {
           signerAddress: address,
           network: "mainnet" as const,
@@ -114,10 +125,9 @@ const HomePage: NextPage = (pageProps) => {
 
   useEffect(() => { 
     const watchTargetContract = async () => {
-      const data = polygonClient?.watchContractEvent({
+      polygonClient?.watchContractEvent({
         address: POLYGON_TARGET_CONTRACT,
         abi: GreeterABI,
-        eventName: "GreetingUpdated",
         onLogs: logs => {
           setTriggerRead(prevState => !prevState);
         }
@@ -127,11 +137,85 @@ const HomePage: NextPage = (pageProps) => {
     watchTargetContract();
   }, [polygonClient]);
 
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (connextService) {
+        const originRpc = client?.chain.rpcUrls.default.http[0] ?? "";
+        const originTransactingAsset = ARBITRUM_USDC;
+        const destinationRpc = polygonClient.chain.rpcUrls.default.http[0] ?? "";
+        const destinationDesiredAsset = POLYGON_WETH;
+        handleFees(
+          connextService.chainToDomainId(chainId),
+          POLYGON_DOMAIN_ID.toString(),
+          originTransactingAsset,
+          destinationDesiredAsset,
+          originRpc,
+          destinationRpc,
+          amountIn
+        );
+      }
+    }, 1000);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [amountIn]);
+
   let toastNotifier: Id | null = null;
 
   const handleSelectedToken = (token: Asset) => {
     console.log("selected token:", token);
     setSelectedToken(token);
+  };
+
+  const handleFees = async (
+    originDomain: string,
+    destinationDomain: string,
+    originTransactingAsset: string,
+    destinationDesiredAsset: string,
+    originRpc: string,
+    destinationRpc: string,
+    amountIn: BigNumberish
+  ) => {
+    try {
+      if (connextService && amountIn.toString().length > 0) {
+        let toastNotifier = toast.loading("Calculating fees");
+        const fee = await connextService.estimateRelayerFee(
+          originDomain,
+          destinationDomain
+        );
+        const quoteAmount =
+          await connextService.getEstimateAmountReceivedHelper({
+            originDomain: +originDomain,
+            destinationDomain: +destinationDomain,
+            amountIn: amountIn.toString(),
+            originRpc,
+            destinationRpc,
+            fromAsset: originTransactingAsset,
+            toAsset: destinationDesiredAsset,
+            signerAddress: address as `0x${string}`,
+            originDecimals: 6,
+            destinationDecimals: 18,
+          });
+
+        console.log("amount in: ", amountIn);
+        console.log("relayer fee: ", fee);
+        console.log("amount received: ", quoteAmount);
+        if (quoteAmount) {
+          setQuotedAmountOut(quoteAmount);
+        }
+
+        setRelayerFee(fee);
+        toast.update(toastNotifier, {
+          render: "Calculating Fees Done",
+          type: "success",
+          isLoading: false,
+          autoClose: 2000,
+        });
+      } else {
+        console.log("Connext Service not found");
+      }
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const handleGreet = (
@@ -144,9 +228,10 @@ const HomePage: NextPage = (pageProps) => {
     amountIn: BigNumberish
   ) => {
     (async () => {
-      if (connextService) {
+      console.log("handleGreet connextService: ", connextService);
+      console.log("handleGreet relayerfee: ", relayerFee);
+      if (connextService && relayerFee) {
         try {
-          // Use the RPC url for the origin chain
           toastNotifier = toast.loading("Submitting Greeting");
           const originChain = connextService.domainToChainID(originDomain);
           const destinationChain =
@@ -160,58 +245,6 @@ const HomePage: NextPage = (pageProps) => {
             connextService.getNativeUSDCAddress(destinationChain);
           console.log(
             `destinationDomain: ${destinationDomain}, destinationUSDC: ${destinationUSDC}`
-          );
-          toast.update(toastNotifier, {
-            render: "Calculating Relayer Fees",
-            type: "success",
-            isLoading: true,
-          });
-
-          const fee = await connextService.estimateRelayerFee(
-            originDomain,
-            destinationDomain
-          );
-
-          toast.update(toastNotifier, {
-            render: "Relayer Fees calculation done",
-            type: "success",
-            isLoading: false,
-          });
-
-          setRelayerFee(fee);
-
-          // Destination side
-
-          toast.update(toastNotifier, {
-            render: "Calculating Estimate Amount Out",
-            type: "success",
-            isLoading: true,
-          });
-
-          const quoteAmount =
-            await connextService.getEstimateAmountReceivedHelper({
-              originDomain: +originDomain,
-              destinationDomain: +destinationDomain,
-              amountIn: amountIn.toString(),
-              originRpc,
-              destinationRpc,
-              fromAsset: originTransactingAsset,
-              toAsset: destinationDesiredAsset,
-              signerAddress: address as `0x${string}`,
-              originDecimals: 6,
-              destinationDecimals: 18,
-            });
-
-          toast.update(toastNotifier, {
-            render: "Estimate Amount Out Calculation Done",
-            type: "success",
-            isLoading: false,
-          });
-          setQuotedAmountOut(quoteAmount as string);
-
-          console.log(`quoteAmount: ${quoteAmount}`);
-          console.log(
-            `destinationDomain: ${destinationDomain}, destinationUSDC: ${destinationUSDC}, originTransactingAsset: ${originTransactingAsset}, destinationDesiredAsset: ${destinationDesiredAsset}, destinationRpc: ${destinationRpc}`
           );
 
           toast.update(toastNotifier, {
@@ -251,6 +284,7 @@ const HomePage: NextPage = (pageProps) => {
             type: "info",
             isLoading: true,
           });
+
           const forwardCallData = utils.defaultAbiCoder.encode(
             ["address", "string"],
             [POLYGON_WETH, greeting]
@@ -260,12 +294,7 @@ const HomePage: NextPage = (pageProps) => {
             forwardCallData,
             params
           );
-          console.log(
-            originTransactingAsset,
-            ARBITRUM_PROTOCOL_TOKEN_ADDRESS,
-            "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
-            "token address verifying "
-          );
+          console.log("originTransactingAsset: ", originTransactingAsset);
           const swapAndXCallParams: SwapAndXCallParams = {
             originDomain,
             destinationDomain,
@@ -276,7 +305,7 @@ const HomePage: NextPage = (pageProps) => {
             toAsset: originUSDC,
             amountIn: amountIn.toString(),
             to: POLYGON_ADAPTER_CONTRACT,
-            relayerFeeInNativeAsset: fee,
+            relayerFeeInNativeAsset: relayerFee,
             callData: xCallData,
           };
 
@@ -316,7 +345,7 @@ const HomePage: NextPage = (pageProps) => {
           console.error("Failed to fetch relayer fee", error);
         }
       } else {
-        toastNotifier = toast.error("Failed to submit greeting");
+        toastNotifier = toast.info("Failed to calculate relayer fee", {autoClose: 1000});
         console.log("Connext service not initialized");
       }
     })();
@@ -330,7 +359,7 @@ const HomePage: NextPage = (pageProps) => {
   });
 
   return (
-    <div className={styles.container}>
+    <div className="bg-black flex flex-col justify-center items-center">
       <Head>
         <title>Connext Next JS</title>
         <meta content="Generated by @connext/sdk" name="description" />
@@ -340,160 +369,259 @@ const HomePage: NextPage = (pageProps) => {
 
       <ToastContainer position="top-center" />
       {toastNotifier}
-      <main className={styles.main}>
-        <div className={styles.flexDisplay}>
-          <h2>Connext Chain Abstraction Reference</h2>
-          <ConnectButton />
-        </div>
-        <div className={styles.dropdown}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              border: "1px solid #0d76fc",
-              margin: "0",
-              padding: "0",
-              borderRadius: "5px",
-              paddingLeft: "10px",
-            }}
-          >
-            <h3 style={{ margin: "0", padding: "0" }}>{selectedNetwork}</h3>
-            <button className={styles.dropbtn}>Select Chain</button>
-          </div>
 
-          <div className={styles.dropdownContent}>
-            {ChainMapping.map((chainMap, index) => (
-              <a key={index} onClick={() => setChainID(chainMap.chainId)}>
-                {chainMap.name}
-              </a>
-            ))}
-          </div>
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <div
-            style={{
-              display: "flex",
-              width: "500px",
-              marginTop: "100px",
-              // justifyContent: "space-around",
-              // alignItems: "center",
-            }}
-          >
-            <TokenList
-              chainId={chainId}
-              setSelectedToken={handleSelectedToken}
-              selectedToken={selectedToken}
+      <div className="w-9/12">
+        <main className="min-h-screen">
+          <div className="flex justify-between w-full py-4">
+            <Image
+              src={ConnextLOGO}
+              alt="Connext Logo"
+              width={180}
+              height={180}
             />
+            <ConnectButton />
+          </div>
 
-            <div style={{ marginLeft: "10px" }}>
-              <input
-                className={styles.inputAmount}
-                onChange={(e) => {
-                  setAmountIn(e.target.value);
-                }}
-                placeholder="Amount"
-              />
-            </div>
-            <div style={{ marginLeft: "10px" }}>
-              <input
-                className={styles.inputGreeting}
-                onChange={(e) => {
-                  setGreeting(e.target.value);
-                }}
-                placeholder="Enter your Greeting"
-              />
+          <h2 className="text-6xl text-white py-6">
+            Chain Abstraction Reference
+          </h2>
+          <p className="text-gray-500 text-xl">
+            Call contracts from anywhere with any asset!
+          </p>
+
+          <div>
+            <p className="text-xs text-gray-400 mt-6 mb-2">
+              Choose a contract{" "}
+            </p>
+            <div className="w-72 border border-gray-600 h-10 rounded flex justify-between items-center box-border px-4 cursor-pointer mb-4">
+              <p className="text-white text-xs font-semibold">
+                Crosschain Greeting
+              </p>
+              <Image src={DownArrow} alt="DownArrow" width={10} height={10} />
             </div>
           </div>
-          <div
-            style={{
-              width: "500px",
-              display: "flex",
-              alignItems: "center",
-              flexFlow: "column",
-            }}
-          >
-            <h2 style={{ alignSelf: "flex-start" }}>Current Greeting: </h2>
-              <div style={{ width: "100%" }}>
-                { currentGreeting }
+          <div className="flex flex-row justify-between mt-12">
+            <div className="w-[407px] h-[472px] bg-[#292929] box-border rounded-sm box-border p-6">
+              <p className="text-xl text-white font-semibold">
+                Pay to update your greeting
+              </p>
+              <div className="flex justify-between mt-12">
+                <p className="text-[#A5A5A5] text-xs font-semibold">
+                  Your Payment
+                </p>
+                <p className="text-[#A5A5A5] text-xs font-semibold">
+                  Balance: <span className="text-white">200,000 USDC</span>
+                </p>
               </div>
-          </div>
-        </div>
+              <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-3">
+                <div className="flex items-center">
+                  <Image src={ETH_LOGO} alt="ETH Logo" width={20} height={20} />
+                  <div className="box-border py-1">
+                    <p className="text-white mx-2 my-0 flex items-center">
+                      USDC{" "}
+                      <span>
+                        <Image
+                          className="h-[8px] w-[10px] mx-2"
+                          src={DownArrow}
+                          alt="Down arrow"
+                        />
+                      </span>
+                    </p>
+                    <p className="text-xs text-[#A5A5A5] mx-2 my-0">
+                      On Arbitrum
+                    </p>
+                  </div>
+                </div>
+                <input
+                  className="bg-transparent text-right text-white box-border p-3 outline-none"
+                  onChange={(e) => {
+                    setAmountIn(e.target.value);
+                  }}
+                />
+              </div>
+              <div className="flex justify-between mt-6">
+                <p className="text-[#A5A5A5] text-xs font-semibold">
+                  Your Greeting
+                </p>
+              </div>
+              <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-8">
+                <div className="flex items-center">
+                  <input
+                    placeholder="Type your greeting"
+                    className="bg-transparent  text-white box-border p-3 outline-none w-100"
+                    onChange={(e) => {
+                      setGreeting(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
 
-        {relayerFee && (
-          <div>
-            <p>
-              Relayer Fees: {ethers.utils.formatEther(relayerFee).toString()}{" "}
-              ETH
-            </p>
-          </div>
-        )}
+              {relayerFee && (
+                <div className="flex flex-row justify-between my-2">
+                  <p className="text-white text-xs text-[#A5A5A5]">
+                    Relayer Fee:{" "}
+                  </p>
+                  <p className="text-white text-xs text-[#A5A5A5]">
+                    {ethers.utils
+                      .formatEther(relayerFee)
+                      .toString()
+                      .slice(0, 8)}{" "}
+                    ETH
+                  </p>
+                </div>
+              )}
 
-        {quotedAmountOut && (
-          <div>
-            <p>
-              {" "}
-              Estimated Amount out:{" "}
-              {ethers.utils.formatUnits(quotedAmountOut, 18).toString()} WETH
-            </p>
-          </div>
-        )}
+              {quotedAmountOut && (
+                <div className="flex flex-row justify-between my-2">
+                  <p className="text-white text-xs text-[#A5A5A5]">
+                    Estimate Amount Out:{" "}
+                  </p>
+                  <p className="text-white text-xs text-[#A5A5A5]">
+                    {ethers.utils
+                      .formatUnits(quotedAmountOut, 18)
+                      .toString()
+                      .slice(0, 8)}{" "}
+                    WETH
+                  </p>
+                </div>
+              )}
 
-        <div className={styles.center}>
-          {selectedToken ? (
-            <div>
               <button
-                className={styles.button}
                 onClick={() => {
                   if (connextService) {
+                    const originRpc = client?.chain.rpcUrls.default.http[0] ?? "";
+                    const destinationRpc = polygonClient.chain.rpcUrls.default.http[0] ?? "";
                     handleGreet(
-                      connextService.chainToDomainId(chainId) as string, // origin domain dynmic
-                      "1886350457",
-                      selectedToken.address,
+                      connextService.chainToDomainId(chainId) as string,
+                      POLYGON_DOMAIN_ID.toString(),
+                      ARBITRUM_USDC,
                       POLYGON_WETH,
-                      "https://arbitrum.meowrpc.com",
-                      "https://polygon.llamarpc.com",
+                      originRpc,
+                      destinationRpc,
                       amountIn
                     );
                   } else {
                     console.log("Connext Service not inited");
                   }
                 }}
+                className="bg-gradient-to-r from-red-400 to-purple-500 hover:from-pink-500 hover:to-yellow-500 w-full text-white px-2 py-4 cursor-pointer mt-2 rounded"
               >
-                Greet With Tokens
+                Send
               </button>
-              {hash && (
-                <p>
-                  You can check you transaction on connextscan by clicking{" "}
-                  <a href={`https://connextscan.io/tx/${hash}?src=search`}>
-                    here.
-                  </a>
-                </p>
-              )}
             </div>
-          ) : (
-            <p>No token selected</p>
-          )}
-          <p className={styles.description}>
-            Pay to update a greeter contract on destination using any asset from
-            any chain
-          </p>
-        </div>
-        <div></div>
-      </main>
-      <footer className={styles.footer}>
-        For more information refer to the official Connext documentation{" "}
-        <a
-          href="https://docs.connext.network/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          here
-        </a>
-        .
-      </footer>
+            <div className="w-[407px] h-[472px] bg-[#292929] box-border rounded-sm text-white p-6">
+              <div className="flex justify-between items-center">
+                <p className="text-xl">Current Greeting</p>
+                <Image
+                  src={POLYGON_LOGO}
+                  alt="ETH_LOGO"
+                  width={30}
+                  height={30}
+                />
+              </div>
+              <div className="border border-[#3E3E3E] h-4/5 mt-10 box-border p-6">
+                {/* {greetingList && greetingList.length ? (
+                  <div style={{ width: "100%" }}>
+                    <ul>
+                      {greetingList.map((greeting) => {
+                        return <p>{greeting}</p>;
+                      })}
+                    </ul>
+                  </div>
+                ) : (
+                  <p>No Greetings found</p>
+                )} */}
+                {currentGreeting}
+              </div>
+            </div>
+          </div>
+          
+
+
+          {/* <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div
+              style={{
+                display: "flex",
+                width: "500px",
+                marginTop: "100px",
+                // justifyContent: "space-around",
+                // alignItems: "center",
+              }}
+            >
+              <TokenList
+                chainId={chainId}
+                setSelectedToken={handleSelectedToken}
+                selectedToken={selectedToken}
+              />
+
+              <div style={{ marginLeft: "10px" }}>
+                <input
+                  className={styles.inputAmount}
+                  onChange={(e) => {
+                    setAmountIn(e.target.value);
+                  }}
+                  placeholder="Amount"
+                />
+              </div>
+              <div style={{ marginLeft: "10px" }}>
+                <input
+                  className={styles.inputGreeting}
+                  onChange={(e) => {
+                    setGreeting(e.target.value);
+                  }}
+                  placeholder="Enter your Greeting"
+                />
+              </div>
+            </div>
+            <div
+              style={{
+                width: "500px",
+                display: "flex",
+                alignItems: "center",
+                flexFlow: "column",
+              }}
+            >
+              <h2 style={{ alignSelf: "flex-start" }}>Greetings: </h2>
+              {currentGreeting}
+            </div>
+          </div> */}
+
+          <div className="flex flex-col justify-center items-center mt-10">
+            {hash && (
+              <p className="text-sm text-white italic">
+                You can check the transaction status on connextscan by clicking{" "}
+                <a
+                  className="text-blue-800"
+                  href={`https://connextscan.io/tx/${hash}?src=search`}
+                >
+                  here.
+                </a>
+              </p>
+            )}
+
+            <p className="text-sm text-white mt-10">
+              Pay to update a greeter contract on destination using any asset
+              from any chain
+            </p>
+          </div>
+        </main>
+
+        <footer className="text-sm text-white italic">
+          For more information refer to the official Connext documentation{" "}
+          <a
+            className="text-blue-800"
+            href="https://docs.connext.network/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            here
+          </a>
+          .
+        </footer>
+      </div>
     </div>
   );
 };
+
 
 export default HomePage;
