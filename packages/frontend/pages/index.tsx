@@ -3,11 +3,10 @@ import { useEffect, useState } from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
-import ContractService from '../services/contractService';
-import WalletService from '../services/walletService';
-import ConnextService from "../services/connextService";
+import ConnextService from '../services/connextService';
 import { SdkConfig } from "@connext/sdk";
-import { useAccount, useSigner, useProvider } from "wagmi";
+import { useAccount, useWalletClient, usePublicClient } from "wagmi";
+import { Hex, hexToBigInt } from 'viem';
 import {
   DestinationCallDataParams,
   SwapAndXCallParams,
@@ -20,14 +19,16 @@ import Confetti from "react-confetti";
 import { Id, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import { BigNumberish, ethers, utils, BigNumber } from "ethers";
+import { BigNumberish, ethers, utils } from "ethers";
 import TokenList from "../components/tokenList";
 
-import GreeterTargetABI from "../abis/GreeterTargetABI.json";
+import GreeterABI from "../abis/GreeterABI.json";
 
 const ARBITRUM_PROTOCOL_TOKEN_ADDRESS =
   "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+const POLYGON_CHAIN_ID = 137;
 const POLYGON_WETH = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
+const POLYGON_TARGET_CONTRACT = "0xb5Ed372Bb3413D5A3d384F73e44EB85618f41455";
 const POLYGON_ADAPTER_CONTRACT = "0xbb54825eB3623daAB431061542d62Fd09Cc20087";
 
 const ChainMapping = [
@@ -41,88 +42,90 @@ const ChainMapping = [
 ];
 
 const HomePage: NextPage = (pageProps) => {
-  const { address } = useAccount();
-  const { data: signer } = useSigner();
-
-  const provider = useProvider();
-
   const { width, height } = useWindowSize();
+
+  const { address } = useAccount();
+  const { data: client } = useWalletClient()
+  const polygonClient = usePublicClient({
+    chainId: POLYGON_CHAIN_ID,
+  });
 
   const [relayerFee, setRelayerFee] = useState<string | undefined>(undefined);
   const [quotedAmountOut, setQuotedAmountOut] = useState<string | null>(null);
-  const [contractService, setContractService] = useState<
-    ContractService | undefined
-  >(undefined);
-  const [walletService, setWalletService] = useState<WalletService | undefined>(
-    undefined
-  );
   const [connextService, setConnextService] = useState<
     ConnextService | undefined
   >(undefined);
 
   const [chainId, setChainID] = useState<number>(0);
-
   const [selectedToken, setSelectedToken] = useState<Asset | null>(null);
-
   const [amountIn, setAmountIn] = useState<BigNumberish>("0");
 
   const [greeting, setGreeting] = useState<string>("");
+  const [currentGreeting, setCurrentGreeting] = useState<string>("");
+  const [triggerRead, setTriggerRead] = useState(false);
 
   const [hash, setHash] = useState<string | null>(null);
-
   const [success, setSuccess] = useState<boolean>(false);
-
-  const [greetingList, setGreetingList] = useState<any[]>([]);
 
   useEffect(() => {
     const initServices = async () => {
-      if (signer && provider) {
-        const chain = (await provider.getNetwork()).chainId;
-        setChainID(chain);
-
-        const contractService = new ContractService(provider);
-        setContractService(contractService);
-
-        const walletService = new WalletService(
-          contractService,
-          provider,
-          signer
-        );
-        setWalletService(walletService);
-
-        if (address) {
-          const sdkConfig: SdkConfig = {
-            signerAddress: address,
-            network: "mainnet" as const,
-            chains: {
-              1869640809: {
-                providers: ["https://rpc.ankr.com/optimism"],
-              },
-              1886350457: {
-                providers: ["https://polygon.llamarpc.com"],
-              },
-              1634886255: {
-                providers: ["https://arb-mainnet-public.unifra.io"],
-              },
-              6450786: {
-                providers: ["https://bsc.rpc.blxrbdn.com"],
-              },
-              // TODO: get chains
+      if (client && address) {
+        const sdkConfig: SdkConfig = {
+          signerAddress: address,
+          network: "mainnet" as const,
+          chains: {
+            1869640809: {
+              providers: ["https://rpc.ankr.com/optimism"],
             },
-          };
-          const connextServiceInstance = new ConnextService(
-            walletService,
-            contractService,
-            sdkConfig
-          );
-          setConnextService(connextServiceInstance);
-        }
+            1886350457: {
+              providers: ["https://polygon.llamarpc.com"],
+            },
+            1634886255: {
+              providers: ["https://arb-mainnet-public.unifra.io"],
+            },
+            6450786: {
+              providers: ["https://bsc.rpc.blxrbdn.com"],
+            },
+            // TODO: get chains
+          },
+        };
+        const connextServiceInstance = new ConnextService(
+          sdkConfig
+        );
+        setConnextService(connextServiceInstance);
       }
     };
 
     initServices();
-    fetchGreetingStatusHistory();
-  }, [signer, provider]);
+  }, [client]);
+
+  useEffect(() => { 
+    const readTargetContract = async () => {
+      const data = await polygonClient?.readContract({
+        address: POLYGON_TARGET_CONTRACT,
+        abi: GreeterABI,
+        functionName: "greeting",
+      })
+      setCurrentGreeting(data as string);
+    }
+
+    readTargetContract();
+  }, [polygonClient, triggerRead]);
+
+  useEffect(() => { 
+    const watchTargetContract = async () => {
+      const data = polygonClient?.watchContractEvent({
+        address: POLYGON_TARGET_CONTRACT,
+        abi: GreeterABI,
+        eventName: "GreetingUpdated",
+        onLogs: logs => {
+          setTriggerRead(prevState => !prevState);
+        }
+      })
+    }
+
+    watchTargetContract();
+  }, [polygonClient]);
 
   let toastNotifier: Id | null = null;
 
@@ -143,7 +146,6 @@ const HomePage: NextPage = (pageProps) => {
     (async () => {
       if (connextService) {
         try {
-          console.log(originDomain, "origin domain");
           // Use the RPC url for the origin chain
           toastNotifier = toast.loading("Submitting Greeting");
           const originChain = connextService.domainToChainID(originDomain);
@@ -280,24 +282,30 @@ const HomePage: NextPage = (pageProps) => {
 
           const txRequest = await connextService.prepareSwapAndXCallHelper(
             swapAndXCallParams,
-            address as `0x${string}`
+            address as Hex
           );
+          console.log("txRequest: ", txRequest);
 
-          if (txRequest && signer) {
-            txRequest.gasLimit = BigNumber.from("8000000");
-            const xcallTxReceipt = await signer.sendTransaction(txRequest);
+          if (txRequest && client) {
+            // Cast the ethers.provider.TransactionRequest types to wagmi-compatible types
+            const data = txRequest.data as Hex;
+            const from = txRequest.from as Hex;
+            const to = txRequest.to as Hex;
+            const value = hexToBigInt(txRequest.value as Hex);
+            const xcallTxHash = await client.sendTransaction({
+              account: from,
+              to: to,
+              data: data,
+              value: value
+            });
 
-            await xcallTxReceipt.wait();
-            setHash(xcallTxReceipt.hash);
+            setHash(xcallTxHash);
             setSuccess(true);
             toast.update(toastNotifier, {
               render: "Greeting Submitted",
               type: "success",
               isLoading: false,
             });
-            const greetings = [...greetingList];
-            greetings.push(greeting);
-            setGreetingList(greetings);
           }
         } catch (error) {
           toast.update(toastNotifier as Id, {
@@ -320,48 +328,6 @@ const HomePage: NextPage = (pageProps) => {
       selectedNetwork = chainMap.name;
     }
   });
-
-  // Fetching of greeting variable
-
-  const fetchGreetingStatusHistory = async () => {
-    try {
-      const providers = new ethers.providers.JsonRpcProvider(
-        "https://polygon-mainnet.g.alchemy.com/v2/MBVvF6TziZyIXX7_WWVl16lEL6DmIzN-"
-      ); // need polygon RPC provider for querying polyscan
-      const initBlockNumber = 44626788;
-      const latestBlockNumber = "latest";
-      const targetContract = new ethers.Contract(
-        POLYGON_ADAPTER_CONTRACT,
-        GreeterTargetABI,
-        providers
-      );
-
-      console.log(latestBlockNumber);
-
-      const filters = targetContract.filters.GreetingUpdated();
-      console.log(filters);
-      const events = await targetContract.queryFilter(
-        filters,
-        initBlockNumber,
-        latestBlockNumber
-      );
-
-      const greetings: any[] = [];
-
-      if (events) {
-        events.forEach((event) => {
-          const { args } = event;
-          if (args) {
-            greetings.push(args._greeting);
-          }
-        });
-      }
-
-      setGreetingList(greetings);
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
   return (
     <div className={styles.container}>
@@ -447,18 +413,10 @@ const HomePage: NextPage = (pageProps) => {
               flexFlow: "column",
             }}
           >
-            <h2 style={{ alignSelf: "flex-start" }}>Greetings: </h2>
-            {greetingList && greetingList.length ? (
+            <h2 style={{ alignSelf: "flex-start" }}>Current Greeting: </h2>
               <div style={{ width: "100%" }}>
-                <ul>
-                  {greetingList.map((greeting) => {
-                    return <li>{greeting}</li>;
-                  })}
-                </ul>
+                { currentGreeting }
               </div>
-            ) : (
-              <p>No Greetings found</p>
-            )}
           </div>
         </div>
 
@@ -520,15 +478,6 @@ const HomePage: NextPage = (pageProps) => {
             Pay to update a greeter contract on destination using any asset from
             any chain
           </p>
-
-          {/* {tracker && (
-            <p>
-              You can track you xcall{" "}
-              <a target="_blank" href={tracker} rel="noreferrer">
-                here.
-              </a>
-            </p>
-          )} */}
         </div>
         <div></div>
       </main>
