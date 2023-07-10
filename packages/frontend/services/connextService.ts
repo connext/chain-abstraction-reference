@@ -15,9 +15,6 @@ import {
 import { SdkConfig, create } from "@connext/sdk";
 import { BigNumber, BigNumberish } from "ethers";
 
-import ContractService from "./walletService";
-import WalletService from "./contractService";
-
 interface DomainID {
   [key: number]: string;
 }
@@ -40,17 +37,11 @@ export const DEPLOYED_ADDRESSES: Record<string, Record<string, string>> = {
 };
 
 export default class ConnextService {
-  contractService: ContractService;
-  walletService: WalletService;
   sdkConfig: SdkConfig;
 
   constructor(
-    contractService: ContractService,
-    walletService: WalletService,
     sdkConfig: SdkConfig
   ) {
-    this.contractService = contractService;
-    this.walletService = walletService;
     this.sdkConfig = sdkConfig;
   }
 
