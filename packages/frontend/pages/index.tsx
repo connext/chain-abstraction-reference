@@ -31,6 +31,7 @@ import GreeterTargetABI from "../abis/GreeterTargetABI.json";
 import ConnextLOGO from "../assets/CONNEXT_LOGO_PRIMARY_LIGHT 1.png";
 import DownArrow from "../assets/chevron_down.png";
 import ETH_LOGO from "../assets/ETH.png";
+import POLYGON_LOGO from "../assets/POLYGON.png";
 
 const ARBITRUM_PROTOCOL_TOKEN_ADDRESS =
   "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
@@ -215,7 +216,7 @@ const HomePage: NextPage = (pageProps) => {
   };
 
   const handleGreet = (
-    originDomain: string,
+    chainId: number,
     destinationDomain: string,
     originTransactingAsset: string,
     destinationDesiredAsset: string,
@@ -224,9 +225,9 @@ const HomePage: NextPage = (pageProps) => {
     amountIn: BigNumberish
   ) => {
     (async () => {
-      if (connextService) {
+      if (connextService && relayerFee) {
         try {
-          console.log(originDomain, "origin domain");
+          const originDomain = connextService.chainToDomainId(chainId);
           // Use the RPC url for the origin chain
           toastNotifier = toast.loading("Submitting Greeting");
           const originChain = connextService.domainToChainID(originDomain);
@@ -234,72 +235,11 @@ const HomePage: NextPage = (pageProps) => {
             connextService.domainToChainID(destinationDomain);
 
           const originUSDC = connextService.getNativeUSDCAddress(originChain);
-          console.log(
-            `originDomain: ${originDomain}, originUSDC: ${originUSDC}`
-          );
+
           const destinationUSDC =
             connextService.getNativeUSDCAddress(destinationChain);
-          console.log(
-            `destinationDomain: ${destinationDomain}, destinationUSDC: ${destinationUSDC}`
-          );
-          toast.update(toastNotifier, {
-            render: "Calculating Relayer Fees",
-            type: "success",
-            isLoading: true,
-          });
-
-          const fee = await connextService.estimateRelayerFee(
-            originDomain,
-            destinationDomain
-          );
-
-          toast.update(toastNotifier, {
-            render: "Relayer Fees calculation done",
-            type: "success",
-            isLoading: false,
-          });
-
-          setRelayerFee(fee);
 
           // Destination side
-
-          toast.update(toastNotifier, {
-            render: "Calculating Estimate Amount Out",
-            type: "success",
-            isLoading: true,
-          });
-
-          const quoteAmount =
-            await connextService.getEstimateAmountReceivedHelper({
-              originDomain: +originDomain,
-              destinationDomain: +destinationDomain,
-              amountIn: amountIn.toString(),
-              originRpc,
-              destinationRpc,
-              fromAsset: originTransactingAsset,
-              toAsset: destinationDesiredAsset,
-              signerAddress: address as `0x${string}`,
-              originDecimals: 6,
-              destinationDecimals: 18,
-            });
-
-          toast.update(toastNotifier, {
-            render: "Estimate Amount Out Calculation Done",
-            type: "success",
-            isLoading: false,
-          });
-          setQuotedAmountOut(quoteAmount as string);
-
-          console.log(`quoteAmount: ${quoteAmount}`);
-          console.log(
-            `destinationDomain: ${destinationDomain}, destinationUSDC: ${destinationUSDC}, originTransactingAsset: ${originTransactingAsset}, destinationDesiredAsset: ${destinationDesiredAsset}, destinationRpc: ${destinationRpc}`
-          );
-
-          toast.update(toastNotifier, {
-            render: "Calculating Pool Fees",
-            type: "success",
-            isLoading: true,
-          });
 
           const poolFee = await connextService.getPoolFeeForUniV3(
             destinationDomain,
@@ -307,14 +247,6 @@ const HomePage: NextPage = (pageProps) => {
             destinationDesiredAsset, // destination Token
             destinationRpc
           );
-
-          toast.update(toastNotifier, {
-            render: "Pool Fees Calculation Done",
-            type: "success",
-            isLoading: false,
-          });
-
-          console.log(`poolFee: ${poolFee}`);
 
           const params: DestinationCallDataParams = {
             fallback: address as `0x${string}`,
@@ -327,11 +259,6 @@ const HomePage: NextPage = (pageProps) => {
             },
           };
 
-          toast.update(toastNotifier, {
-            render: "Preparing Transaction",
-            type: "info",
-            isLoading: true,
-          });
           const forwardCallData = utils.defaultAbiCoder.encode(
             ["address", "string"],
             [POLYGON_WETH, greeting]
@@ -356,8 +283,8 @@ const HomePage: NextPage = (pageProps) => {
                 : originTransactingAsset,
             toAsset: originUSDC,
             amountIn: amountIn.toString(),
-            to: POLYGON_ADAPTER_CONTRACT,
-            relayerFeeInNativeAsset: fee,
+            to: POLYGON_TARGET_CONTRACT,
+            relayerFeeInNativeAsset: relayerFee,
             callData: xCallData,
           };
 
@@ -391,7 +318,9 @@ const HomePage: NextPage = (pageProps) => {
           console.error("Failed to fetch relayer fee", error);
         }
       } else {
-        toastNotifier = toast.error("Failed to submit greeting");
+        toast.info("Relayer fees not calculated", {
+          autoClose: 1000,
+        });
         console.log("Connext service not initialized");
       }
     })();
@@ -577,19 +506,15 @@ const HomePage: NextPage = (pageProps) => {
 
               <button
                 onClick={() => {
-                  if (connextService && selectedToken) {
-                    handleGreet(
-                      connextService.chainToDomainId(chainId) as string, // origin domain dynmic
-                      "1886350457",
-                      selectedToken.address,
-                      POLYGON_WETH,
-                      "https://arbitrum.meowrpc.com",
-                      "https://polygon.llamarpc.com",
-                      amountIn
-                    );
-                  } else {
-                    console.log("Connext Service not inited");
-                  }
+                  handleGreet(
+                    chainId, // origin domain dynmic
+                    "1886350457",
+                    "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                    POLYGON_WETH,
+                    "https://arbitrum.meowrpc.com",
+                    "https://polygon.llamarpc.com",
+                    amountIn
+                  );
                 }}
                 className="bg-gradient-to-r from-red-400 to-purple-500 hover:from-pink-500 hover:to-yellow-500 w-full text-white px-2 py-4 cursor-pointer mt-2 rounded"
               >
@@ -599,7 +524,12 @@ const HomePage: NextPage = (pageProps) => {
             <div className="w-[407px] h-[472px] bg-[#292929] box-border rounded-sm text-white p-6">
               <div className="flex justify-between items-center">
                 <p className="text-xl">Greetings</p>
-                <Image src={ETH_LOGO} alt="ETH_LOGO" width={30} height={30} />
+                <Image
+                  src={POLYGON_LOGO}
+                  alt="ETH_LOGO"
+                  width={30}
+                  height={30}
+                />
               </div>
               <div className="border border-[#3E3E3E] h-4/5 mt-10 box-border p-6">
                 {greetingList && greetingList.length ? (
@@ -616,100 +546,21 @@ const HomePage: NextPage = (pageProps) => {
               </div>
             </div>
           </div>
-          {/* <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <div
-              style={{
-                display: "flex",
-                width: "500px",
-                marginTop: "100px",
-                // justifyContent: "space-around",
-                // alignItems: "center",
-              }}
-            >
-              <TokenList
-                chainId={chainId}
-                setSelectedToken={handleSelectedToken}
-                selectedToken={selectedToken}
-              />
 
-              <div style={{ marginLeft: "10px" }}>
-                <input
-                  className={styles.inputAmount}
-                  onChange={(e) => {
-                    setAmountIn(e.target.value);
-                  }}
-                  placeholder="Amount"
-                />
-              </div>
-              <div style={{ marginLeft: "10px" }}>
-                <input
-                  className={styles.inputGreeting}
-                  onChange={(e) => {
-                    setGreeting(e.target.value);
-                  }}
-                  placeholder="Enter your Greeting"
-                />
-              </div>
-            </div>
-            <div
-              style={{
-                width: "500px",
-                display: "flex",
-                alignItems: "center",
-                flexFlow: "column",
-              }}
-            >
-              <h2 style={{ alignSelf: "flex-start" }}>Greetings: </h2>
-              {greetingList && greetingList.length ? (
-                <div style={{ width: "100%" }}>
-                  <ul>
-                    {greetingList.map((greeting) => {
-                      return <li>{greeting}</li>;
-                    })}
-                  </ul>
-                </div>
-              ) : (
-                <p>No Greetings found</p>
-              )}
-            </div>
-          </div> */}
-
-          {relayerFee && (
-            <div>
-              <p>
-                Relayer Fees: {ethers.utils.formatEther(relayerFee).toString()}{" "}
-                ETH
+          <div className="flex flex-col justify-center items-center mt-10">
+            {hash && (
+              <p className="text-sm text-white italic">
+                You can check you transaction on connextscan by clicking{" "}
+                <a
+                  className="text-blue-800"
+                  href={`https://connextscan.io/tx/${hash}?src=search`}
+                >
+                  here.
+                </a>
               </p>
-            </div>
-          )}
-
-          {quotedAmountOut && (
-            <div>
-              <p>
-                {" "}
-                Estimated Amount out:{" "}
-                {ethers.utils.formatUnits(quotedAmountOut, 18).toString()} WETH
-              </p>
-            </div>
-          )}
-
-          <div className={styles.center}>
-            {selectedToken ? (
-              <div>
-                <button className={styles.button}>Greet With Tokens</button>
-                {hash && (
-                  <p>
-                    You can check you transaction on connextscan by clicking{" "}
-                    <a href={`https://connextscan.io/tx/${hash}?src=search`}>
-                      here.
-                    </a>
-                  </p>
-                )}
-              </div>
-            ) : (
-              <p>No token selected</p>
             )}
-            <p className={styles.description}>
+
+            <p className="text-sm text-white mt-10">
               Pay to update a greeter contract on destination using any asset
               from any chain
             </p>
@@ -723,11 +574,11 @@ const HomePage: NextPage = (pageProps) => {
             </p>
           )} */}
           </div>
-          <div></div>
         </main>
-        <footer className={styles.footer}>
+        <footer className="text-sm text-white italic">
           For more information refer to the official Connext documentation{" "}
           <a
+            className="text-blue-800"
             href="https://docs.connext.network/"
             target="_blank"
             rel="noreferrer"
