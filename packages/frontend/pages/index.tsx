@@ -116,8 +116,15 @@ const HomePage: NextPage = (pageProps) => {
 
   // Will trigger on token change
   useEffect(() => {
-    setBalance(`${balanceData?.formatted} ${balanceData?.symbol}`);
-  }, []);
+    if (balanceData) {
+      setBalance(`${balanceData.formatted} ${balanceData.symbol}`);
+    } else {
+      setBalance(undefined);
+    }
+    if (!address) {
+      setChainID(0);
+    }
+  }, [address, balanceData]);
 
   useEffect(() => {
     const getTargetContractLogs = async () => {
@@ -393,8 +400,15 @@ const HomePage: NextPage = (pageProps) => {
                 <p className="text-[#A5A5A5] text-xs font-semibold">
                   Your Payment
                 </p>
+                {/* using chainID for logic
+                MM connected ? chainID : no chainID */}
                 <p className="text-[#A5A5A5] text-xs font-semibold">
-                  Balance : {balance ? balance : "loading..."}
+                  Balance :{" "}
+                  {balance
+                    ? balance
+                    : chainId !== 0
+                    ? "loading"
+                    : "Wallet not connected"}
                 </p>
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-3">
