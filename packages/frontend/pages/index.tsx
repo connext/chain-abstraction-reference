@@ -74,6 +74,8 @@ const HomePage: NextPage = (pageProps) => {
   const [currentGreeting, setCurrentGreeting] = useState<string>("");
   const [greetingList, setGreetingList] = useState<string[]>([]);
   const [triggerRead, setTriggerRead] = useState(false);
+  const MAX_NUM_GREETINGS = 10;
+  const BLOCKS_LOOKBACK = BigInt(100000);
 
   const [hash, setHash] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
@@ -113,6 +115,12 @@ const HomePage: NextPage = (pageProps) => {
     initServices();
   }, [client]);
 
+  useEffect(() => {
+    if (greetingList.length > 0) {
+      setCurrentGreeting(greetingList[0]);
+    }
+  }, [greetingList]);
+
   useEffect(() => { 
     const getTargetContractLogs = async () => {
       const maxBlocksPerCall = BigInt(3000);
@@ -120,9 +128,15 @@ const HomePage: NextPage = (pageProps) => {
   
       let toBlock = currentBlock;
       let fromBlock = toBlock - maxBlocksPerCall;
+
+      if (fromBlock < currentBlock - BLOCKS_LOOKBACK) {
+        fromBlock = currentBlock - BLOCKS_LOOKBACK;
+      }
       if(fromBlock < BigInt(0)) {
         fromBlock = BigInt(0);
       }
+  
+      let allGreetings: string[] = [];
   
       // Get events from latest to oldest
       while(toBlock >= fromBlock && toBlock > BigInt(0)) {
@@ -133,15 +147,10 @@ const HomePage: NextPage = (pageProps) => {
           toBlock: toBlock
         });
   
-        if (logs) {
+        if (logs && logs.length > 0) {
           const greetings = logs.map((log: any) => log.args.greeting);
-          setGreetingList(prevGreetingList => [
-            ...prevGreetingList, 
-            ...greetings.reverse()
-          ]);
+          allGreetings = [...allGreetings, ...greetings.reverse()];
         }
-  
-        console.log(`contract logs from block ${fromBlock} to ${toBlock}: `, logs);
   
         toBlock = fromBlock - BigInt(1);
         fromBlock = toBlock - maxBlocksPerCall;
@@ -149,6 +158,12 @@ const HomePage: NextPage = (pageProps) => {
           fromBlock = BigInt(0);
         }
       }
+  
+      if (allGreetings.length > MAX_NUM_GREETINGS) {
+        allGreetings = allGreetings.slice(-MAX_NUM_GREETINGS);
+      }
+  
+      setGreetingList(allGreetings);
     }
 
     getTargetContractLogs();
@@ -564,7 +579,7 @@ const HomePage: NextPage = (pageProps) => {
             </div>
             <div className="w-[407px] h-[472px] bg-[#292929] box-border rounded-sm text-white p-6">
               <div className="flex justify-between items-center">
-                <p className="text-xl">Greetings (last 100K blocks)</p>
+                <p className="text-xl">Greeter Contract</p>
                 <Image
                   src={POLYGON_LOGO}
                   alt="ETH_LOGO"
@@ -572,18 +587,24 @@ const HomePage: NextPage = (pageProps) => {
                   height={30}
                 />
               </div>
-              <div className="border border-[#3E3E3E] h-4/5 mt-10 box-border p-6">
-                {greetingList && greetingList.length ? (
-                  <div style={{ width: "100%" }}>
-                    <ul>
-                      {greetingList.map((greeting) => {
-                        return <p>{greeting}</p>;
-                      })}
-                    </ul>
-                  </div>
-                ) : (
-                  <p>No greetings found</p>
-                )}
+
+              <p className="text-lg mt-10">
+                Greetings
+              </p>
+              <div className="border border-[#3E3E3E] h-2/3 box-border p-6">  
+                <div className="ml-5">
+                  {greetingList && greetingList.length ? (
+                    <div style={{ width: "100%" }}>
+                      <ul>
+                        {greetingList.map((greeting) => {
+                          return <p>{greeting}</p>;
+                        })}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p>No greetings found</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
