@@ -297,9 +297,7 @@ const HomePage: NextPage = (pageProps) => {
       toast.info("Services not intitialised", { autoClose: 1000 });
       return;
     }
-    const toastGreeting = toast.loading("Submitting Greeting", {
-      autoClose: 2000,
-    });
+    const toastGreeting = toast.loading("Submitting Greeting");
     const { err, hash } = await handleGreetHelper(
       connextService as ConnextService,
       originDomain,
@@ -320,6 +318,7 @@ const HomePage: NextPage = (pageProps) => {
         type: "success",
         render: "Greeting Submitted",
         autoClose: 1000,
+        isLoading: false,
       });
       setHash(hash);
       setSuccess(true);
@@ -511,13 +510,13 @@ const HomePage: NextPage = (pageProps) => {
                 />
               </div>
 
-              <p className="text-lg mt-10">Greetings</p>
-              <div className="border border-[#3E3E3E] h-2/3 box-border p-6">
-                <div className="ml-5">
+              <p className="text-lg mt-10 mb-5">Greetings</p>
+              <div className="border border-[#3E3E3E] h-[300px] box-border p-6">
+                <div className="ml-5 overflow-scroll h-full">
                   {isLoadingGreetings ? (
                     <p>Loading greetings...</p>
                   ) : greetingList && greetingList.length ? (
-                    <div style={{ width: "100%" }}>
+                    <div>
                       <ul>
                         {greetingList.map((greeting) => {
                           return <p>{greeting}</p>;
