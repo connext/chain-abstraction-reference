@@ -1,18 +1,12 @@
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useEffect, useState, useRef } from 'react';
-import type { NextPage } from 'next';
-import Head from 'next/head';
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useEffect, useState, useRef } from "react";
+import type { NextPage } from "next";
+import Head from "next/head";
 import Image from "next/image";
-import styles from '../styles/Home.module.css';
-import ConnextService from '../services/connextService';
+import ConnextService from "../services/connextService";
 import { SdkConfig } from "@connext/sdk";
-import { useAccount, useWalletClient, usePublicClient, useContractWrite, usePrepareContractWrite, erc20ABI } from "wagmi";
-import { Hex, hexToBigInt, parseAbiItem } from 'viem';
-import {
-  DestinationCallDataParams,
-  SwapAndXCallParams,
-  Asset,
-} from "@connext/chain-abstraction/dist/types";
+import { useAccount, useWalletClient, usePublicClient } from "wagmi";
+import { parseAbiItem } from "viem";
 
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
@@ -21,7 +15,10 @@ import { Id, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { BigNumberish, ethers, utils } from "ethers";
-import TokenList from "../components/tokenList";
+
+import { getTokenBalace } from "../utils/getTokenBalance";
+import { handleGreetHelper } from "../utils/handleGreetHelper";
+import { chainIdToRPC, domainToChainID, chainToDomainId } from "../utils/utils";
 
 import GreeterABI from "../abis/GreeterABI.json";
 
@@ -30,35 +27,21 @@ import DownArrow from "../assets/chevron_down.png";
 import ETH_LOGO from "../assets/ETH.png";
 import POLYGON_LOGO from "../assets/POLYGON.png";
 
-const ARBITRUM_PROTOCOL_TOKEN_ADDRESS =
-  "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
-const ARBITRUM_USDC = "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8";
 const ARBITRUM_USDT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
 const POLYGON_CHAIN_ID = 137;
 const POLYGON_DOMAIN_ID = 1886350457;
 const POLYGON_WETH = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
 const POLYGON_TARGET_CONTRACT = "0xb5Ed372Bb3413D5A3d384F73e44EB85618f41455";
-const POLYGON_ADAPTER_CONTRACT = "0xbb54825eB3623daAB431061542d62Fd09Cc20087";
 const MAX_NUM_GREETINGS = 10;
 const BLOCKS_LOOKBACK = BigInt(100000);
-
-const ChainMapping = [
-  {
-    chainId: 137,
-    name: "POLYGON",
-  },
-  { chainId: 10, name: "OPTIMISM" },
-  { chainId: 56, name: "BINANCE" },
-  { chainId: 42161, name: "ARBITRUM" },
-];
 
 const HomePage: NextPage = (pageProps) => {
   const initialRender = useRef(true);
   const { width, height } = useWindowSize();
 
   const { address } = useAccount();
-  const { data: client } = useWalletClient()
-  const polygonClient = usePublicClient({chainId: POLYGON_CHAIN_ID});
+  const { data: client } = useWalletClient();
+  const polygonClient = usePublicClient({ chainId: POLYGON_CHAIN_ID });
   const publicClient = usePublicClient();
 
   const [relayerFee, setRelayerFee] = useState<string | undefined>(undefined);
@@ -68,7 +51,6 @@ const HomePage: NextPage = (pageProps) => {
   >(undefined);
 
   const [chainId, setChainID] = useState<number>(0);
-  const [selectedToken, setSelectedToken] = useState<Asset | null>(null);
   const [amountIn, setAmountIn] = useState<BigNumberish>("0");
 
   const [greeting, setGreeting] = useState<string>("");
@@ -80,6 +62,7 @@ const HomePage: NextPage = (pageProps) => {
   const [hash, setHash] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [numConfetti, setNumConfetti] = useState(0);
+  const [balance, setBalance] = useState<string>("Loading");
 
   useEffect(() => {
     const initServices = async () => {
@@ -92,23 +75,21 @@ const HomePage: NextPage = (pageProps) => {
           network: "mainnet" as const,
           chains: {
             1869640809: {
-              providers: ["https://rpc.ankr.com/optimism"],
+              providers: [chainIdToRPC(domainToChainID("1869640809"))],
             },
             1886350457: {
-              providers: ["https://polygon.llamarpc.com"],
+              providers: [chainIdToRPC(domainToChainID("1886350457"))],
             },
             1634886255: {
-              providers: ["https://arb-mainnet-public.unifra.io"],
+              providers: [chainIdToRPC(domainToChainID("1634886255"))],
             },
             6450786: {
-              providers: ["https://bsc.rpc.blxrbdn.com"],
+              providers: [chainIdToRPC(domainToChainID("6450786"))],
             },
             // TODO: get chains
           },
         };
-        const connextServiceInstance = new ConnextService(
-          sdkConfig
-        );
+        const connextServiceInstance = new ConnextService(sdkConfig);
         setConnextService(connextServiceInstance);
       }
     };
@@ -122,69 +103,87 @@ const HomePage: NextPage = (pageProps) => {
     }
   }, [greetingList]);
 
-  useEffect(() => { 
+  useEffect(() => {
     const getTargetContractLogs = async () => {
       setIsLoadingGreetings(true);
 
       const maxBlocksPerCall = BigInt(3000);
       const currentBlock = await polygonClient?.getBlockNumber();
-  
+
       let fromBlock = currentBlock - BLOCKS_LOOKBACK;
-      if(fromBlock < BigInt(0)) {
+      if (fromBlock < BigInt(0)) {
         fromBlock = BigInt(0);
       }
       let toBlock = fromBlock + maxBlocksPerCall;
-      if(toBlock > currentBlock) {
+      if (toBlock > currentBlock) {
         toBlock = currentBlock;
       }
-  
+
       let allGreetings: string[] = [];
-  
+
       // Get events from earliest to latest
-      while(fromBlock <= toBlock && fromBlock <= currentBlock) {
+      while (fromBlock <= toBlock && fromBlock <= currentBlock) {
         const logs = await polygonClient?.getLogs({
           address: POLYGON_TARGET_CONTRACT,
           event: parseAbiItem("event GreetingUpdated(string greeting)"),
           fromBlock: fromBlock,
-          toBlock: toBlock
+          toBlock: toBlock,
         });
-  
+
         if (logs && logs.length > 0) {
           const greetings = logs.map((log: any) => log.args.greeting);
           allGreetings = [...allGreetings, ...greetings];
         }
-  
+
         fromBlock = toBlock + BigInt(1);
         toBlock = fromBlock + maxBlocksPerCall;
-        if(toBlock > currentBlock) {
+        if (toBlock > currentBlock) {
           toBlock = currentBlock;
         }
       }
-  
+
       if (allGreetings.length > MAX_NUM_GREETINGS) {
         allGreetings = allGreetings.slice(-MAX_NUM_GREETINGS);
       }
-  
+
+      // fetching token Balance
+
+      const { ethBalance, tokenBalance, err } = await getTokenBalace(
+        address as `0x${string}`,
+        ARBITRUM_USDT,
+        chainIdToRPC(domainToChainID("1634886255"))
+      );
+
+      if (err) {
+        setBalance("Error");
+      }
+      if (tokenBalance) {
+        setBalance(tokenBalance.toString());
+      }
+
       setGreetingList(allGreetings.reverse());
       setIsLoadingGreetings(false);
-    }
+    };
 
     getTargetContractLogs();
   }, []);
 
-  useEffect(() => { 
+  // Need a hook for token change for triggering the function
+  // to get the balance
+
+  useEffect(() => {
     const readTargetContract = async () => {
       const data = await polygonClient?.readContract({
         address: POLYGON_TARGET_CONTRACT,
         abi: GreeterABI,
         functionName: "greeting",
-      })
+      });
       setCurrentGreeting(data as string);
-      setGreetingList(prevGreetingList => [
+      setGreetingList((prevGreetingList) => [
         data as string,
-        ...prevGreetingList
+        ...prevGreetingList,
       ]);
-    }
+    };
 
     // Skip initial render to prevent duplicate current greeting
     if (initialRender.current) {
@@ -194,16 +193,16 @@ const HomePage: NextPage = (pageProps) => {
     }
   }, [triggerRead]);
 
-  useEffect(() => { 
+  useEffect(() => {
     const watchTargetContract = async () => {
       polygonClient?.watchContractEvent({
         address: POLYGON_TARGET_CONTRACT,
         abi: GreeterABI,
-        onLogs: logs => {
-          setTriggerRead(prevState => !prevState);
-        }
-      })
-    }
+        onLogs: (logs) => {
+          setTriggerRead((prevState) => !prevState);
+        },
+      });
+    };
 
     watchTargetContract();
   }, []);
@@ -213,10 +212,11 @@ const HomePage: NextPage = (pageProps) => {
       if (connextService) {
         const originRpc = client?.chain.rpcUrls.default.http[0] ?? "";
         const originTransactingAsset = ARBITRUM_USDT;
-        const destinationRpc = polygonClient.chain.rpcUrls.default.http[0] ?? "";
+        const destinationRpc =
+          polygonClient.chain.rpcUrls.default.http[0] ?? "";
         const destinationDesiredAsset = POLYGON_WETH;
         handleFees(
-          connextService.chainToDomainId(chainId),
+          chainToDomainId(chainId),
           POLYGON_DOMAIN_ID.toString(),
           originTransactingAsset,
           destinationDesiredAsset,
@@ -231,11 +231,6 @@ const HomePage: NextPage = (pageProps) => {
   }, [amountIn]);
 
   let toastNotifier: Id | null = null;
-
-  const handleSelectedToken = (token: Asset) => {
-    console.log("selected token:", token);
-    setSelectedToken(token);
-  };
 
   const handleFees = async (
     originDomain: string,
@@ -289,7 +284,7 @@ const HomePage: NextPage = (pageProps) => {
     }
   };
 
-  const handleGreet = (
+  const handleGreet = async (
     originDomain: string,
     destinationDomain: string,
     originTransactingAsset: string,
@@ -298,166 +293,42 @@ const HomePage: NextPage = (pageProps) => {
     destinationRpc: string,
     amountIn: BigNumberish
   ) => {
-    (async () => {
-      if (connextService && relayerFee) {
-        try {
-          toastNotifier = toast.loading("Submitting Greeting");
-          const originChain = connextService.domainToChainID(originDomain);
-          const destinationChain =
-            connextService.domainToChainID(destinationDomain);
-
-          const originUSDC = connextService.getNativeUSDCAddress(originChain);
-          console.log(
-            `originDomain: ${originDomain}, originUSDC: ${originUSDC}`
-          );
-          const destinationUSDC =
-            connextService.getNativeUSDCAddress(destinationChain);
-          console.log(
-            `destinationDomain: ${destinationDomain}, destinationUSDC: ${destinationUSDC}`
-          );
-
-          toast.update(toastNotifier, {
-            render: "Calculating Pool Fees",
-            type: "success",
-            isLoading: true,
-          });
-
-          const poolFee = await connextService.getPoolFeeForUniV3(
-            destinationDomain,
-            destinationUSDC, // destination USDC
-            destinationDesiredAsset, // destination Token
-            destinationRpc
-          );
-
-          toast.update(toastNotifier, {
-            render: "Pool Fees Calculation Done",
-            type: "success",
-            isLoading: false,
-          });
-
-          console.log(`poolFee: ${poolFee}`);
-
-          const params: DestinationCallDataParams = {
-            fallback: address as `0x${string}`,
-            swapForwarderData: {
-              toAsset: destinationDesiredAsset,
-              swapData: {
-                amountOutMin: "0",
-                poolFee,
-              },
-            },
-          };
-
-          toast.update(toastNotifier, {
-            render: "Preparing Transaction",
-            type: "info",
-            isLoading: true,
-          });
-
-          const forwardCallData = utils.defaultAbiCoder.encode(
-            ["address", "string"],
-            [POLYGON_WETH, greeting]
-          );
-          const xCallData = await connextService.getXCallCallDataHelper(
-            destinationDomain,
-            forwardCallData,
-            params
-          );
-          console.log("originTransactingAsset: ", originTransactingAsset);
-          const swapAndXCallParams: SwapAndXCallParams = {
-            originDomain,
-            destinationDomain,
-            fromAsset:
-              originTransactingAsset === ARBITRUM_PROTOCOL_TOKEN_ADDRESS
-                ? ethers.constants.AddressZero
-                : originTransactingAsset,
-            toAsset: originUSDC,
-            amountIn: amountIn.toString(),
-            to: POLYGON_ADAPTER_CONTRACT,
-            relayerFeeInNativeAsset: relayerFee,
-            callData: xCallData,
-          };
-          console.log("swapAndXCallParams: ", swapAndXCallParams);
-
-          const txRequest = await connextService.prepareSwapAndXCallHelper(
-            swapAndXCallParams,
-            address as Hex
-          );
-          console.log("txRequest: ", txRequest);
-
-          if (txRequest && client) {
-            // Cast the ethers.provider.TransactionRequest types to wagmi-compatible types
-            const data = txRequest.data as Hex;
-            const from = txRequest.from as Hex;
-            const to = txRequest.to as Hex;
-            const value = hexToBigInt(txRequest.value as Hex);
-
-            // Approve if needed using Connext SDK
-            const approveRequest = await connextService.approveIfNeeded(
-              originDomain, 
-              originTransactingAsset, 
-              amountIn.toString()
-            )
-            
-            if (approveRequest) {
-              const approveTx = await client.sendTransaction({
-                account: approveRequest.from as Hex,
-                to: approveRequest.to as Hex,
-                data: approveRequest.data as Hex,
-              });
-              console.log("approveTx: ", approveTx);
-            } else {
-              console.log("Allowance sufficient");
-            }
-
-            // Estimate gas for swapAndXCall
-            const gasEstimate = await publicClient.estimateGas({
-              account: address!,
-              to: to,
-              data: data,
-              value: value
-            })
-            console.log("gasEstimate: ", gasEstimate)
-
-            // Send swapAndXcall transaction
-            const xcallTxHash = await client.sendTransaction({
-              account: from,
-              to: to,
-              data: data,
-              value: value,
-              gas: gasEstimate
-            });
-
-            setHash(xcallTxHash);
-            setSuccess(true);
-            toast.update(toastNotifier, {
-              render: "Greeting Submitted",
-              type: "success",
-              isLoading: false,
-            });
-          }
-        } catch (error) {
-          toast.update(toastNotifier as Id, {
-            render: "Failed to submit greeting",
-            type: "error",
-            isLoading: false,
-          });
-          console.error("Failed to fetch relayer fee", error);
-        }
-      } else {
-        toastNotifier = toast.info("Failed to calculate relayer fee", {autoClose: 1000});
-        console.log("Connext service not initialized");
-      }
-    })();
-  };
-
-  let selectedNetwork = "Choose a network";
-  ChainMapping.forEach((chainMap) => {
-    if (chainMap.chainId === chainId) {
-      selectedNetwork = chainMap.name;
+    if (!relayerFee || !connextService || !address) {
+      toast.info("Services not intitialised", { autoClose: 1000 });
+      return;
     }
-  });
+    const toastGreeting = toast.loading("Submitting Greeting", {
+      autoClose: 2000,
+    });
+    const { err, hash } = await handleGreetHelper(
+      connextService as ConnextService,
+      originDomain,
+      destinationDomain,
+      originTransactingAsset,
+      destinationDesiredAsset,
+      destinationRpc,
+      amountIn,
+      relayerFee,
+      address as `0x${string}`,
+      greeting,
+      client,
+      publicClient
+    );
 
+    if (hash) {
+      toast.update(toastGreeting, {
+        type: "success",
+        render: "Greeting Submitted",
+        autoClose: 1000,
+      });
+      setHash(hash);
+      setSuccess(true);
+    }
+    if (err) {
+      toast.dismiss(toastGreeting);
+      toast.error("Failed to submit greeting", { autoClose: 1000 });
+    }
+  };
 
   useEffect(() => {
     if (success) {
@@ -476,7 +347,9 @@ const HomePage: NextPage = (pageProps) => {
         <meta content="Generated by @connext/sdk" name="description" />
         <link href="/favicon.ico" rel="icon" />
       </Head>
-      {success && <Confetti width={width} height={height} numberOfPieces={numConfetti} />}
+      {success && (
+        <Confetti width={width} height={height} numberOfPieces={numConfetti} />
+      )}
 
       <ToastContainer position="top-center" />
       {toastNotifier}
@@ -521,7 +394,12 @@ const HomePage: NextPage = (pageProps) => {
                   Your Payment
                 </p>
                 <p className="text-[#A5A5A5] text-xs font-semibold">
-                  Balance: <span className="text-white">200,000 USDT</span>
+                  Balance:{" "}
+                  <span className="text-white">
+                    {balance === "Loading"
+                      ? balance
+                      : ethers.utils.formatUnits(balance, 6)}
+                  </span>
                 </p>
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-3">
@@ -600,10 +478,12 @@ const HomePage: NextPage = (pageProps) => {
               <button
                 onClick={() => {
                   if (connextService) {
-                    const originRpc = client?.chain.rpcUrls.default.http[0] ?? "";
-                    const destinationRpc = polygonClient.chain.rpcUrls.default.http[0] ?? "";
+                    const originRpc =
+                      client?.chain.rpcUrls.default.http[0] ?? "";
+                    const destinationRpc =
+                      polygonClient.chain.rpcUrls.default.http[0] ?? "";
                     handleGreet(
-                      connextService.chainToDomainId(chainId) as string,
+                      chainToDomainId(chainId),
                       POLYGON_DOMAIN_ID.toString(),
                       ARBITRUM_USDT,
                       POLYGON_WETH,
@@ -631,80 +511,26 @@ const HomePage: NextPage = (pageProps) => {
                 />
               </div>
 
-              <p className="text-lg mt-10">
-                Greetings
-              </p>
-              <div className="border border-[#3E3E3E] h-2/3 box-border p-6">  
+              <p className="text-lg mt-10">Greetings</p>
+              <div className="border border-[#3E3E3E] h-2/3 box-border p-6">
                 <div className="ml-5">
-                  {
-                    isLoadingGreetings ? 
-                    <p>Loading greetings...</p> :
-                    (
-                      greetingList && greetingList.length ? (
-                        <div style={{ width: "100%" }}>
-                          <ul>
-                            {greetingList.map((greeting) => {
-                              return <p>{greeting}</p>;
-                            })}
-                          </ul>
-                        </div>
-                      ) : (
-                        <p>No greetings found</p>
-                      )
-                    )
-                  }
+                  {isLoadingGreetings ? (
+                    <p>Loading greetings...</p>
+                  ) : greetingList && greetingList.length ? (
+                    <div style={{ width: "100%" }}>
+                      <ul>
+                        {greetingList.map((greeting) => {
+                          return <p>{greeting}</p>;
+                        })}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p>No greetings found</p>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-          
-          {/* <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <div
-              style={{
-                display: "flex",
-                width: "500px",
-                marginTop: "100px",
-                // justifyContent: "space-around",
-                // alignItems: "center",
-              }}
-            >
-              <TokenList
-                chainId={chainId}
-                setSelectedToken={handleSelectedToken}
-                selectedToken={selectedToken}
-              />
-
-              <div style={{ marginLeft: "10px" }}>
-                <input
-                  className={styles.inputAmount}
-                  onChange={(e) => {
-                    setAmountIn(e.target.value);
-                  }}
-                  placeholder="Amount"
-                />
-              </div>
-              <div style={{ marginLeft: "10px" }}>
-                <input
-                  className={styles.inputGreeting}
-                  onChange={(e) => {
-                    setGreeting(e.target.value);
-                  }}
-                  placeholder="Enter your Greeting"
-                />
-              </div>
-            </div>
-            <div
-              style={{
-                width: "500px",
-                display: "flex",
-                alignItems: "center",
-                flexFlow: "column",
-              }}
-            >
-              <h2 style={{ alignSelf: "flex-start" }}>Greetings: </h2>
-              {currentGreeting}
-            </div>
-          </div> */}
 
           <div className="flex flex-col justify-center items-center mt-10">
             {hash && (
@@ -742,6 +568,5 @@ const HomePage: NextPage = (pageProps) => {
     </div>
   );
 };
-
 
 export default HomePage;

@@ -39,9 +39,7 @@ export const DEPLOYED_ADDRESSES: Record<string, Record<string, string>> = {
 export default class ConnextService {
   sdkConfig: SdkConfig;
 
-  constructor(
-    sdkConfig: SdkConfig
-  ) {
+  constructor(sdkConfig: SdkConfig) {
     this.sdkConfig = sdkConfig;
   }
 
@@ -127,7 +125,6 @@ export default class ConnextService {
     amount: string,
     infiniteApprove?: Boolean
   ) {
-
     const { sdkBase } = await create(this.sdkConfig);
     const txRequest = await sdkBase.approveIfNeeded(
       domainId,
@@ -148,26 +145,6 @@ export default class ConnextService {
       56: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
     };
     return USDC_ADDRESS[networkName];
-  }
-
-  domainToChainID(domain: string) {
-    const domainToChain: ChainID = {
-      "1869640809": 10,
-      "1886350457": 137,
-      "1634886255": 42161,
-      "6450786": 56,
-    };
-    return domainToChain[domain];
-  }
-
-  chainToDomainId(chainId: number) {
-    const domainToChain: DomainID = {
-      10: "1869640809",
-      137: "1886350457",
-      42161: "1634886255",
-      56: "6450786",
-    };
-    return domainToChain[chainId];
   }
 
   async getEstimateAmountReceivedHelper(_args: EstimateQuoteAmountArgs) {
