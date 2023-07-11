@@ -45,7 +45,7 @@ const HomePage: NextPage = (pageProps) => {
   const { width, height } = useWindowSize();
 
   const { address } = useAccount();
-  const { data: client } = useWalletClient();
+  const { data: walletClient } = useWalletClient();
   const polygonClient = usePublicClient({ chainId: POLYGON_CHAIN_ID });
   const publicClient = usePublicClient();
   const { chain } = useNetwork();
@@ -77,8 +77,8 @@ const HomePage: NextPage = (pageProps) => {
 
   useEffect(() => {
     const initServices = async () => {
-      if (client && address) {
-        const chainId = await client.getChainId();
+      if (walletClient && address) {
+        const chainId = await walletClient.getChainId();
         setChainID(chainId);
 
         const sdkConfig: SdkConfig = {
@@ -106,7 +106,7 @@ const HomePage: NextPage = (pageProps) => {
     };
 
     initServices();
-  }, [client]);
+  }, [walletClient]);
 
   useEffect(() => {
     if (greetingList.length > 0) {
@@ -131,7 +131,7 @@ const HomePage: NextPage = (pageProps) => {
       setIsLoadingGreetings(true);
 
       const maxBlocksPerCall = BigInt(3000);
-      const currentBlock = await polygonClient?.getBlockNumber();
+      const currentBlock = await polygonClient.getBlockNumber();
 
       let fromBlock = currentBlock - BLOCKS_LOOKBACK;
       if (fromBlock < BigInt(0)) {
@@ -146,7 +146,7 @@ const HomePage: NextPage = (pageProps) => {
 
       // Get events from earliest to latest
       while (fromBlock <= toBlock && fromBlock <= currentBlock) {
-        const logs = await polygonClient?.getLogs({
+        const logs = await polygonClient.getLogs({
           address: POLYGON_TARGET_CONTRACT,
           event: parseAbiItem("event GreetingUpdated(string greeting)"),
           fromBlock: fromBlock,
@@ -181,11 +181,12 @@ const HomePage: NextPage = (pageProps) => {
 
   useEffect(() => {
     const readTargetContract = async () => {
-      const data = await polygonClient?.readContract({
+      const data = await polygonClient.readContract({
         address: POLYGON_TARGET_CONTRACT,
         abi: GreeterABI,
         functionName: "greeting",
       });
+
       setCurrentGreeting(data as string);
       setGreetingList((prevGreetingList) => [
         data as string,
@@ -202,10 +203,12 @@ const HomePage: NextPage = (pageProps) => {
   }, [triggerRead]);
 
   useEffect(() => {
+    let unwatch: any;
     const watchTargetContract = async () => {
-      polygonClient?.watchContractEvent({
+      unwatch = polygonClient.watchContractEvent({
         address: POLYGON_TARGET_CONTRACT,
         abi: GreeterABI,
+        eventName: "GreetingUpdated",
         onLogs: (logs) => {
           setTriggerRead((prevState) => !prevState);
         },
@@ -213,12 +216,16 @@ const HomePage: NextPage = (pageProps) => {
     };
 
     watchTargetContract();
+
+    return () => {
+      unwatch();
+    };
   }, []);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (connextService) {
-        const originRpc = client?.chain.rpcUrls.default.http[0] ?? "";
+        const originRpc = walletClient?.chain.rpcUrls.default.http[0] ?? "";
         const originTransactingAsset = ARBITRUM_USDT;
         const destinationRpc =
           polygonClient.chain.rpcUrls.default.http[0] ?? "";
@@ -317,7 +324,7 @@ const HomePage: NextPage = (pageProps) => {
       relayerFee,
       address as `0x${string}`,
       greeting,
-      client,
+      walletClient,
       publicClient
     );
 
@@ -487,8 +494,8 @@ const HomePage: NextPage = (pageProps) => {
               <button
                 onClick={() => {
                   if (connextService) {
-                    const originRpc =
-                      client?.chain.rpcUrls.default.http[0] ?? "";
+                    const originRpc = 
+                      walletClient?.chain.rpcUrls.default.http[0] ?? "";
                     const destinationRpc =
                       polygonClient.chain.rpcUrls.default.http[0] ?? "";
                     handleGreet(
