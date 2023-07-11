@@ -1,5 +1,5 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from "next/image";
@@ -7,7 +7,7 @@ import styles from '../styles/Home.module.css';
 import ConnextService from '../services/connextService';
 import { SdkConfig } from "@connext/sdk";
 import { useAccount, useWalletClient, usePublicClient, erc20ABI } from "wagmi";
-import { Hex, hexToBigInt } from 'viem';
+import { Hex, hexToBigInt, parseAbi, parseAbiItem } from 'viem';
 import {
   DestinationCallDataParams,
   SwapAndXCallParams,
@@ -29,6 +29,7 @@ import ConnextLOGO from "../assets/CONNEXT_LOGO_PRIMARY_LIGHT 1.png";
 import DownArrow from "../assets/chevron_down.png";
 import ETH_LOGO from "../assets/ETH.png";
 import POLYGON_LOGO from "../assets/POLYGON.png";
+import { polygon } from 'wagmi/dist/chains';
 
 const ARBITRUM_PROTOCOL_TOKEN_ADDRESS =
   "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
@@ -50,6 +51,7 @@ const ChainMapping = [
 ];
 
 const HomePage: NextPage = (pageProps) => {
+  const initialRender = useRef(true);
   const { width, height } = useWindowSize();
 
   const { address } = useAccount();
@@ -70,6 +72,7 @@ const HomePage: NextPage = (pageProps) => {
 
   const [greeting, setGreeting] = useState<string>("");
   const [currentGreeting, setCurrentGreeting] = useState<string>("");
+  const [greetingList, setGreetingList] = useState<string[]>([]);
   const [triggerRead, setTriggerRead] = useState(false);
 
   const [hash, setHash] = useState<string | null>(null);
@@ -111,6 +114,47 @@ const HomePage: NextPage = (pageProps) => {
   }, [client]);
 
   useEffect(() => { 
+    const getTargetContractLogs = async () => {
+      const maxBlocksPerCall = BigInt(3000);
+      const currentBlock = await polygonClient?.getBlockNumber();
+  
+      let toBlock = currentBlock;
+      let fromBlock = toBlock - maxBlocksPerCall;
+      if(fromBlock < BigInt(0)) {
+        fromBlock = BigInt(0);
+      }
+  
+      // Get events from latest to oldest
+      while(toBlock >= fromBlock && toBlock > BigInt(0)) {
+        const logs = await polygonClient?.getLogs({
+          address: POLYGON_TARGET_CONTRACT,
+          event: parseAbiItem("event GreetingUpdated(string greeting)"),
+          fromBlock: fromBlock,
+          toBlock: toBlock
+        });
+  
+        if (logs) {
+          const greetings = logs.map((log: any) => log.args.greeting);
+          setGreetingList(prevGreetingList => [
+            ...prevGreetingList, 
+            ...greetings.reverse()
+          ]);
+        }
+  
+        console.log(`contract logs from block ${fromBlock} to ${toBlock}: `, logs);
+  
+        toBlock = fromBlock - BigInt(1);
+        fromBlock = toBlock - maxBlocksPerCall;
+        if(fromBlock < BigInt(0)) {
+          fromBlock = BigInt(0);
+        }
+      }
+    }
+
+    getTargetContractLogs();
+  }, []);
+
+  useEffect(() => { 
     const readTargetContract = async () => {
       const data = await polygonClient?.readContract({
         address: POLYGON_TARGET_CONTRACT,
@@ -118,10 +162,19 @@ const HomePage: NextPage = (pageProps) => {
         functionName: "greeting",
       })
       setCurrentGreeting(data as string);
+      setGreetingList(prevGreetingList => [
+        ...prevGreetingList, 
+        data as string
+      ]);
     }
 
-    readTargetContract();
-  }, [polygonClient, triggerRead]);
+    // Skip initial render to prevent duplicate current greeting
+    if (initialRender.current) {
+      initialRender.current = false;
+    } else {
+      readTargetContract();
+    }
+  }, [triggerRead]);
 
   useEffect(() => { 
     const watchTargetContract = async () => {
@@ -135,7 +188,7 @@ const HomePage: NextPage = (pageProps) => {
     }
 
     watchTargetContract();
-  }, [polygonClient]);
+  }, []);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -511,7 +564,7 @@ const HomePage: NextPage = (pageProps) => {
             </div>
             <div className="w-[407px] h-[472px] bg-[#292929] box-border rounded-sm text-white p-6">
               <div className="flex justify-between items-center">
-                <p className="text-xl">Current Greeting</p>
+                <p className="text-xl">Greetings (last 100K blocks)</p>
                 <Image
                   src={POLYGON_LOGO}
                   alt="ETH_LOGO"
@@ -520,7 +573,7 @@ const HomePage: NextPage = (pageProps) => {
                 />
               </div>
               <div className="border border-[#3E3E3E] h-4/5 mt-10 box-border p-6">
-                {/* {greetingList && greetingList.length ? (
+                {greetingList && greetingList.length ? (
                   <div style={{ width: "100%" }}>
                     <ul>
                       {greetingList.map((greeting) => {
@@ -529,15 +582,12 @@ const HomePage: NextPage = (pageProps) => {
                     </ul>
                   </div>
                 ) : (
-                  <p>No Greetings found</p>
-                )} */}
-                {currentGreeting}
+                  <p>No greetings found</p>
+                )}
               </div>
             </div>
           </div>
           
-
-
           {/* <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div
               style={{
