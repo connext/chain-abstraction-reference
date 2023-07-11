@@ -6,7 +6,7 @@ import Image from "next/image";
 import styles from '../styles/Home.module.css';
 import ConnextService from '../services/connextService';
 import { SdkConfig } from "@connext/sdk";
-import { useAccount, useWalletClient, usePublicClient, erc20ABI } from "wagmi";
+import { useAccount, useWalletClient, usePublicClient, useContractWrite, usePrepareContractWrite, erc20ABI } from "wagmi";
 import { Hex, hexToBigInt, parseAbiItem } from 'viem';
 import {
   DestinationCallDataParams,
@@ -33,6 +33,7 @@ import POLYGON_LOGO from "../assets/POLYGON.png";
 const ARBITRUM_PROTOCOL_TOKEN_ADDRESS =
   "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
 const ARBITRUM_USDC = "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8";
+const ARBITRUM_USDT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
 const POLYGON_CHAIN_ID = 137;
 const POLYGON_DOMAIN_ID = 1886350457;
 const POLYGON_WETH = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
@@ -58,6 +59,7 @@ const HomePage: NextPage = (pageProps) => {
   const { address } = useAccount();
   const { data: client } = useWalletClient()
   const polygonClient = usePublicClient({chainId: POLYGON_CHAIN_ID});
+  const publicClient = usePublicClient();
 
   const [relayerFee, setRelayerFee] = useState<string | undefined>(undefined);
   const [quotedAmountOut, setQuotedAmountOut] = useState<string | null>(null);
@@ -146,7 +148,6 @@ const HomePage: NextPage = (pageProps) => {
           fromBlock: fromBlock,
           toBlock: toBlock
         });
-        console.log("logs: ", logs);
   
         if (logs && logs.length > 0) {
           const greetings = logs.map((log: any) => log.args.greeting);
@@ -211,7 +212,7 @@ const HomePage: NextPage = (pageProps) => {
     const delayDebounceFn = setTimeout(() => {
       if (connextService) {
         const originRpc = client?.chain.rpcUrls.default.http[0] ?? "";
-        const originTransactingAsset = ARBITRUM_USDC;
+        const originTransactingAsset = ARBITRUM_USDT;
         const destinationRpc = polygonClient.chain.rpcUrls.default.http[0] ?? "";
         const destinationDesiredAsset = POLYGON_WETH;
         handleFees(
@@ -376,6 +377,7 @@ const HomePage: NextPage = (pageProps) => {
             relayerFeeInNativeAsset: relayerFee,
             callData: xCallData,
           };
+          console.log("swapAndXCallParams: ", swapAndXCallParams);
 
           const txRequest = await connextService.prepareSwapAndXCallHelper(
             swapAndXCallParams,
@@ -389,11 +391,41 @@ const HomePage: NextPage = (pageProps) => {
             const from = txRequest.from as Hex;
             const to = txRequest.to as Hex;
             const value = hexToBigInt(txRequest.value as Hex);
+
+            // Approve if needed using Connext SDK
+            const approveRequest = await connextService.approveIfNeeded(
+              originDomain, 
+              originTransactingAsset, 
+              amountIn.toString()
+            )
+            
+            if (approveRequest) {
+              const approveTx = await client.sendTransaction({
+                account: approveRequest.from as Hex,
+                to: approveRequest.to as Hex,
+                data: approveRequest.data as Hex,
+              });
+              console.log("approveTx: ", approveTx);
+            } else {
+              console.log("Allowance sufficient");
+            }
+
+            // Estimate gas for swapAndXCall
+            const gasEstimate = await publicClient.estimateGas({
+              account: address!,
+              to: to,
+              data: data,
+              value: value
+            })
+            console.log("gasEstimate: ", gasEstimate)
+
+            // Send swapAndXcall transaction
             const xcallTxHash = await client.sendTransaction({
               account: from,
               to: to,
               data: data,
-              value: value
+              value: value,
+              gas: gasEstimate
             });
 
             setHash(xcallTxHash);
@@ -489,7 +521,7 @@ const HomePage: NextPage = (pageProps) => {
                   Your Payment
                 </p>
                 <p className="text-[#A5A5A5] text-xs font-semibold">
-                  Balance: <span className="text-white">200,000 USDC</span>
+                  Balance: <span className="text-white">200,000 USDT</span>
                 </p>
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-3">
@@ -497,7 +529,7 @@ const HomePage: NextPage = (pageProps) => {
                   <Image src={ETH_LOGO} alt="ETH Logo" width={20} height={20} />
                   <div className="box-border py-1">
                     <p className="text-white mx-2 my-0 flex items-center">
-                      USDC{" "}
+                      USDT{" "}
                       <span>
                         <Image
                           className="h-[8px] w-[10px] mx-2"
@@ -573,7 +605,7 @@ const HomePage: NextPage = (pageProps) => {
                     handleGreet(
                       connextService.chainToDomainId(chainId) as string,
                       POLYGON_DOMAIN_ID.toString(),
-                      ARBITRUM_USDC,
+                      ARBITRUM_USDT,
                       POLYGON_WETH,
                       originRpc,
                       destinationRpc,
