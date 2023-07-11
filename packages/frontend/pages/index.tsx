@@ -44,7 +44,7 @@ const ChainMapping = [
     chainId: 137,
     name: "POLYGON",
   },
-  { chainId: 10, name: "OPTIMSIM" },
+  { chainId: 10, name: "OPTIMISM" },
   { chainId: 56, name: "BINANCE" },
   { chainId: 42161, name: "ARBITRUM" },
 ];
@@ -125,36 +125,36 @@ const HomePage: NextPage = (pageProps) => {
       const maxBlocksPerCall = BigInt(3000);
       const currentBlock = await polygonClient?.getBlockNumber();
   
-      let toBlock = currentBlock;
-      let fromBlock = toBlock - maxBlocksPerCall;
-
-      if (fromBlock < currentBlock - BLOCKS_LOOKBACK) {
-        fromBlock = currentBlock - BLOCKS_LOOKBACK;
-      }
+      let fromBlock = currentBlock - BLOCKS_LOOKBACK;
       if(fromBlock < BigInt(0)) {
         fromBlock = BigInt(0);
+      }
+      let toBlock = fromBlock + maxBlocksPerCall;
+      if(toBlock > currentBlock) {
+        toBlock = currentBlock;
       }
   
       let allGreetings: string[] = [];
   
-      // Get events from latest to oldest
-      while(toBlock >= fromBlock && toBlock > BigInt(0)) {
+      // Get events from earliest to latest
+      while(fromBlock <= toBlock && fromBlock <= currentBlock) {
         const logs = await polygonClient?.getLogs({
           address: POLYGON_TARGET_CONTRACT,
           event: parseAbiItem("event GreetingUpdated(string greeting)"),
           fromBlock: fromBlock,
           toBlock: toBlock
         });
+        console.log("logs: ", logs);
   
         if (logs && logs.length > 0) {
           const greetings = logs.map((log: any) => log.args.greeting);
-          allGreetings = [...allGreetings, ...greetings.reverse()];
+          allGreetings = [...allGreetings, ...greetings];
         }
   
-        toBlock = fromBlock - BigInt(1);
-        fromBlock = toBlock - maxBlocksPerCall;
-        if(fromBlock < BigInt(0)) {
-          fromBlock = BigInt(0);
+        fromBlock = toBlock + BigInt(1);
+        toBlock = fromBlock + maxBlocksPerCall;
+        if(toBlock > currentBlock) {
+          toBlock = currentBlock;
         }
       }
   
@@ -162,7 +162,7 @@ const HomePage: NextPage = (pageProps) => {
         allGreetings = allGreetings.slice(-MAX_NUM_GREETINGS);
       }
   
-      setGreetingList(allGreetings);
+      setGreetingList(allGreetings.reverse());
     }
 
     getTargetContractLogs();
@@ -177,8 +177,8 @@ const HomePage: NextPage = (pageProps) => {
       })
       setCurrentGreeting(data as string);
       setGreetingList(prevGreetingList => [
-        ...prevGreetingList, 
-        data as string
+        data as string,
+        ...prevGreetingList
       ]);
     }
 
