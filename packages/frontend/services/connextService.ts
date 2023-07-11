@@ -39,15 +39,12 @@ export const DEPLOYED_ADDRESSES: Record<string, Record<string, string>> = {
 export default class ConnextService {
   sdkConfig: SdkConfig;
 
-  constructor(
-    sdkConfig: SdkConfig
-  ) {
+  constructor(sdkConfig: SdkConfig) {
     this.sdkConfig = sdkConfig;
   }
 
   async estimateRelayerFee(originDomain: string, destinationDomain: string) {
     const { sdkBase } = await create(this.sdkConfig);
-    console.log("In the estimateRelayerfee function");
     const relayerFees = await sdkBase.estimateRelayerFee({
       originDomain,
       destinationDomain,
@@ -122,6 +119,22 @@ export default class ConnextService {
     return estimateReceived;
   }
 
+  async approveIfNeeded(
+    domainId: string,
+    assetId: string,
+    amount: string,
+    infiniteApprove?: Boolean
+  ) {
+    const { sdkBase } = await create(this.sdkConfig);
+    const txRequest = await sdkBase.approveIfNeeded(
+      domainId,
+      assetId,
+      amount,
+      infiniteApprove ? true : false
+    );
+    return txRequest;
+  }
+
   getNativeUSDCAddress(networkName: number) {
     const USDC_ADDRESS: DomainID = {
       1: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -132,26 +145,6 @@ export default class ConnextService {
       56: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
     };
     return USDC_ADDRESS[networkName];
-  }
-
-  domainToChainID(domain: string) {
-    const domainToChain: ChainID = {
-      "1869640809": 10,
-      "1886350457": 137,
-      "1634886255": 42161,
-      "6450786": 56,
-    };
-    return domainToChain[domain];
-  }
-
-  chainToDomainId(chainId: number) {
-    const domainToChain: DomainID = {
-      10: "1869640809",
-      137: "1886350457",
-      42161: "1634886255",
-      56: "6450786",
-    };
-    return domainToChain[chainId];
   }
 
   async getEstimateAmountReceivedHelper(_args: EstimateQuoteAmountArgs) {
