@@ -72,6 +72,7 @@ const HomePage: NextPage = (pageProps) => {
   const [greeting, setGreeting] = useState<string>("");
   const [currentGreeting, setCurrentGreeting] = useState<string>("");
   const [greetingList, setGreetingList] = useState<string[]>([]);
+  const [isLoadingGreetings, setIsLoadingGreetings] = useState<boolean>(false);
   const [triggerRead, setTriggerRead] = useState(false);
   const MAX_NUM_GREETINGS = 10;
   const BLOCKS_LOOKBACK = BigInt(100000);
@@ -122,6 +123,8 @@ const HomePage: NextPage = (pageProps) => {
 
   useEffect(() => { 
     const getTargetContractLogs = async () => {
+      setIsLoadingGreetings(true);
+
       const maxBlocksPerCall = BigInt(3000);
       const currentBlock = await polygonClient?.getBlockNumber();
   
@@ -163,6 +166,7 @@ const HomePage: NextPage = (pageProps) => {
       }
   
       setGreetingList(allGreetings.reverse());
+      setIsLoadingGreetings(false);
     }
 
     getTargetContractLogs();
@@ -590,17 +594,23 @@ const HomePage: NextPage = (pageProps) => {
               </p>
               <div className="border border-[#3E3E3E] h-2/3 box-border p-6">  
                 <div className="ml-5">
-                  {greetingList && greetingList.length ? (
-                    <div style={{ width: "100%" }}>
-                      <ul>
-                        {greetingList.map((greeting) => {
-                          return <p>{greeting}</p>;
-                        })}
-                      </ul>
-                    </div>
-                  ) : (
-                    <p>No greetings found</p>
-                  )}
+                  {
+                    isLoadingGreetings ? 
+                    <p>Loading greetings...</p> :
+                    (
+                      greetingList && greetingList.length ? (
+                        <div style={{ width: "100%" }}>
+                          <ul>
+                            {greetingList.map((greeting) => {
+                              return <p>{greeting}</p>;
+                            })}
+                          </ul>
+                        </div>
+                      ) : (
+                        <p>No greetings found</p>
+                      )
+                    )
+                  }
                 </div>
               </div>
             </div>
