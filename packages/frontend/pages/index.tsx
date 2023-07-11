@@ -5,7 +5,13 @@ import Head from "next/head";
 import Image from "next/image";
 import ConnextService from "../services/connextService";
 import { SdkConfig } from "@connext/sdk";
-import { useAccount, useWalletClient, usePublicClient } from "wagmi";
+import {
+  useAccount,
+  useWalletClient,
+  usePublicClient,
+  useBalance,
+  useNetwork,
+} from "wagmi";
 import { parseAbiItem } from "viem";
 
 import useWindowSize from "react-use/lib/useWindowSize";
@@ -16,7 +22,6 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { BigNumberish, ethers, utils } from "ethers";
 
-import { getTokenBalace } from "../utils/getTokenBalance";
 import { handleGreetHelper } from "../utils/handleGreetHelper";
 import { chainIdToRPC, domainToChainID, chainToDomainId } from "../utils/utils";
 
@@ -43,6 +48,12 @@ const HomePage: NextPage = (pageProps) => {
   const { data: client } = useWalletClient();
   const polygonClient = usePublicClient({ chainId: POLYGON_CHAIN_ID });
   const publicClient = usePublicClient();
+  const { chain } = useNetwork();
+  const { data: balanceData } = useBalance({
+    address,
+    token: ARBITRUM_USDT,
+    chainId: chain?.id,
+  });
 
   const [relayerFee, setRelayerFee] = useState<string | undefined>(undefined);
   const [quotedAmountOut, setQuotedAmountOut] = useState<string | null>(null);
@@ -62,7 +73,7 @@ const HomePage: NextPage = (pageProps) => {
   const [hash, setHash] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [numConfetti, setNumConfetti] = useState(0);
-  const [balance, setBalance] = useState<string>("Loading");
+  const [balance, setBalance] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const initServices = async () => {
@@ -102,6 +113,11 @@ const HomePage: NextPage = (pageProps) => {
       setCurrentGreeting(greetingList[0]);
     }
   }, [greetingList]);
+
+  // Will trigger on token change
+  useEffect(() => {
+    setBalance(`${balanceData?.formatted} ${balanceData?.symbol}`);
+  }, []);
 
   useEffect(() => {
     const getTargetContractLogs = async () => {
@@ -144,21 +160,6 @@ const HomePage: NextPage = (pageProps) => {
 
       if (allGreetings.length > MAX_NUM_GREETINGS) {
         allGreetings = allGreetings.slice(-MAX_NUM_GREETINGS);
-      }
-
-      // fetching token Balance
-
-      const { ethBalance, tokenBalance, err } = await getTokenBalace(
-        address as `0x${string}`,
-        ARBITRUM_USDT,
-        chainIdToRPC(domainToChainID("1634886255"))
-      );
-
-      if (err) {
-        setBalance("Error");
-      }
-      if (tokenBalance) {
-        setBalance(tokenBalance.toString());
       }
 
       setGreetingList(allGreetings.reverse());
@@ -297,9 +298,7 @@ const HomePage: NextPage = (pageProps) => {
       toast.info("Services not intitialised", { autoClose: 1000 });
       return;
     }
-    const toastGreeting = toast.loading("Submitting Greeting", {
-      autoClose: 2000,
-    });
+    const toastGreeting = toast.loading("Submitting Greeting");
     const { err, hash } = await handleGreetHelper(
       connextService as ConnextService,
       originDomain,
@@ -320,6 +319,7 @@ const HomePage: NextPage = (pageProps) => {
         type: "success",
         render: "Greeting Submitted",
         autoClose: 1000,
+        isLoading: false,
       });
       setHash(hash);
       setSuccess(true);
@@ -394,12 +394,7 @@ const HomePage: NextPage = (pageProps) => {
                   Your Payment
                 </p>
                 <p className="text-[#A5A5A5] text-xs font-semibold">
-                  Balance:{" "}
-                  <span className="text-white">
-                    {balance === "Loading"
-                      ? balance
-                      : ethers.utils.formatUnits(balance, 6)}
-                  </span>
+                  Balance : {balance ? balance : "loading..."}
                 </p>
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-3">
@@ -511,13 +506,13 @@ const HomePage: NextPage = (pageProps) => {
                 />
               </div>
 
-              <p className="text-lg mt-10">Greetings</p>
-              <div className="border border-[#3E3E3E] h-2/3 box-border p-6">
-                <div className="ml-5">
+              <p className="text-lg mt-10 mb-5">Greetings</p>
+              <div className="border border-[#3E3E3E] h-[300px] box-border p-6">
+                <div className="ml-5 overflow-scroll h-full">
                   {isLoadingGreetings ? (
                     <p>Loading greetings...</p>
                   ) : greetingList && greetingList.length ? (
-                    <div style={{ width: "100%" }}>
+                    <div>
                       <ul>
                         {greetingList.map((greeting) => {
                           return <p>{greeting}</p>;
