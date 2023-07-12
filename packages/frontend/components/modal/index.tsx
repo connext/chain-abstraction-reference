@@ -1,5 +1,6 @@
 import { FiSearch } from "react-icons/fi";
 import Asset from "../Asset";
+import { useState } from "react";
 
 const Modal = ({
   isModalOpen,
@@ -8,6 +9,8 @@ const Modal = ({
   isModalOpen: boolean;
   handleModalHelper: (open: boolean) => void;
 }) => {
+  const [search, setSearch] = useState<string>("");
+
   return (
     <>
       {isModalOpen && (
@@ -33,7 +36,7 @@ const Modal = ({
                   <div className="relative">
                     <input
                       // value={}
-                      // onChange={(e) => setInputSearch(e.target.value)}
+                      onChange={(e) => setSearch(e.target.value)}
                       type="search"
                       placeholder="Search"
                       className="w-full h-10 bg-transparent appearance-none rounded border border-slate-200 dark:border-slate-800 text-sm pl-10 pr-5 outline-none text-white"
@@ -46,7 +49,7 @@ const Modal = ({
                 </div>
                 <div className="w-full mx-auto pt-4 pb-2 h-[350px] overflow-scroll">
                   <div className="flex w-full flex-wrap items-center mt-1 mb-4  ">
-                    <Asset />
+                    <Asset search={search} />
                   </div>
                 </div>
               </div>

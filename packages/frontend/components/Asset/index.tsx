@@ -3,7 +3,7 @@ import mainnetChains from "../../config/mainnet/chains.json";
 import mainnetAssets from "../../config/mainnet/assets.json";
 import Image from "next/image";
 
-const Asset = () => {
+const Asset = ({ search }: { search: string }) => {
   const [assets, setAssets] = useState<
     {
       symbol: string;
@@ -14,6 +14,31 @@ const Asset = () => {
       chain_logo: string | undefined;
     }[]
   >([]);
+
+  const [filteredAsset, setFilteredAsset] = useState<
+    {
+      symbol: string;
+      chain_id: number;
+      decimals: number;
+      contract_address: string;
+      image: string;
+      chain_logo: string | undefined;
+    }[]
+  >(assets);
+
+  useEffect(() => {
+    const updatedList = [...assets];
+    const filteredList = updatedList.filter((item) => {
+      if (item.symbol.toLowerCase().includes(search.toLowerCase())) {
+        return item;
+      }
+    });
+    if (filteredList.length) {
+      setFilteredAsset(filteredList);
+    } else {
+      setFilteredAsset(assets);
+    }
+  }, [search]);
 
   useEffect(() => {
     const chainMap = new Map(
@@ -38,12 +63,13 @@ const Asset = () => {
     });
 
     setAssets([...assets, ...newAssets]);
+    setFilteredAsset([...assets, ...newAssets]);
   }, []);
 
   return (
     <div className="w-full">
-      {assets.length &&
-        assets.map((token) => {
+      {filteredAsset.length &&
+        filteredAsset.map((token) => {
           return (
             <div className="mb-3 hover:bg-slate-100 w-full text-white dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded cursor-pointer flex items-center hover:font-semibold space-x-1 mr-1.5 py-2 px-2">
               <div className="flex relative">

@@ -76,7 +76,7 @@ const HomePage: NextPage = (pageProps) => {
   const [numConfetti, setNumConfetti] = useState(0);
   const [balance, setBalance] = useState<string | undefined>(undefined);
 
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const initServices = async () => {
@@ -426,7 +426,10 @@ const HomePage: NextPage = (pageProps) => {
                 </p>
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-3">
-                <div className="flex items-center">
+                <div
+                  className="flex items-center cursor-pointer"
+                  onClick={() => setIsModalOpen(true)}
+                >
                   <Image src={ETH_LOGO} alt="ETH Logo" width={20} height={20} />
                   <div className="box-border py-1">
                     <p className="text-white mx-2 my-0 flex items-center">
