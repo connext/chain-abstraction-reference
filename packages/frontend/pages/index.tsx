@@ -80,6 +80,7 @@ const HomePage: NextPage = (pageProps) => {
     image: string;
     chain_logo: string | undefined;
   } | null>(null);
+  const [sendEnabled, setSendEnabled] = useState<boolean>(false);
 
   const { data: balanceData } = useBalance({
     address,
@@ -324,6 +325,7 @@ const HomePage: NextPage = (pageProps) => {
     chain_logo: string | undefined;
   }) => {
     setSelectedAsset(asset);
+    setSendEnabled(true);
   };
 
   const handleGreet = async (
@@ -572,7 +574,12 @@ const HomePage: NextPage = (pageProps) => {
                     console.log("Connext Service not inited");
                   }
                 }}
-                className="bg-gradient-to-r from-red-400 to-purple-500 hover:from-pink-500 hover:to-yellow-500 w-full text-white px-2 py-4 cursor-pointer mt-2 rounded"
+                className={`w-full px-2 py-4 mt-2 rounded ${
+                  sendEnabled
+                    ? "bg-gradient-to-r from-[#29C1FC] via-[#587BFD] to-[#AB00FF] hover:from-[#AB00FF] hover:via-[#D86292] hover:to-[#FBB03B] text-white cursor-pointer"
+                    : "bg-stone-400 text-stone-600 cursor-not-allowed"
+                }`}
+                disabled={!sendEnabled}
               >
                 Send
               </button>
@@ -589,7 +596,7 @@ const HomePage: NextPage = (pageProps) => {
                 />
               </div>
 
-              <p className="text-[#21C1FC] mt-5">Greeting: {greetingList[0]}</p>
+              <p className="text-[#21C1FC] mt-5">Current greeting: {greetingList[0]}</p>
 
               <div className="mb-5">
                 {pendingGreeting ? (
