@@ -132,7 +132,7 @@ const HomePage: NextPage = (pageProps) => {
   // Updates balance on token switch
   useEffect(() => {
     if (balanceData) {
-      setBalance(`${balanceData.formatted.substring(0, 8)} ${balanceData.symbol}`);
+      setBalance(`${balanceData.formatted.slice(0, 8)}`);
       setSendEnabled(true);
     } else {
       setBalance(undefined);
@@ -474,12 +474,13 @@ const HomePage: NextPage = (pageProps) => {
                 {/* using chainID for logic
                 MM connected ? chainID : no chainID */}
                 <p className="text-[#A5A5A5] text-xs font-semibold">
-                  Balance :{" "}
+                  Balance:{" "}
                   {balance
                     ? balance
                     : chain?.id !== 0
                     ? "loading"
                     : "Wallet not connected"}
+                  {" "}{balanceData?.symbol}
                 </p>
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-3">
@@ -562,7 +563,7 @@ const HomePage: NextPage = (pageProps) => {
                     Relayer fee:{" "}
                   </p>
                   <p className="text-white text-xs text-[#A5A5A5]">
-                    {utils.formatEther(relayerFee).toString().slice(0, 8)} ETH
+                    {utils.formatEther(relayerFee).toString().slice(0, 8)} {chain?.nativeCurrency.symbol}
                   </p>
                 </div>
               )}
