@@ -26,12 +26,14 @@ export const domainToChainID = (domain: string) => {
     "1886350457": 137,
     "1634886255": 42161,
     "6450786": 56,
+    "6648936": 1,
   };
   return domainToChain[domain];
 };
 
 export const chainToDomainId = (chainId: number) => {
   const domainToChain: DomainID = {
+    1: "6648936",
     10: "1869640809",
     137: "1886350457",
     42161: "1634886255",

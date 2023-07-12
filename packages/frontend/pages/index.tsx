@@ -29,11 +29,10 @@ import GreeterABI from "../abis/GreeterABI.json";
 
 import ConnextLOGO from "../assets/CONNEXT_LOGO_PRIMARY_LIGHT 1.png";
 import DownArrow from "../assets/chevron_down.png";
-import ETH_LOGO from "../assets/ETH.png";
 import POLYGON_LOGO from "../assets/POLYGON.png";
 import Modal from "../components/modal";
 
-const ARBITRUM_USDT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
+// const ARBITRUM_USDT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
 const POLYGON_CHAIN_ID = 137;
 const POLYGON_DOMAIN_ID = 1886350457;
 const POLYGON_WETH = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
@@ -57,7 +56,7 @@ const HomePage: NextPage = (pageProps) => {
     ConnextService | undefined
   >(undefined);
 
-  const [chainId, setChainID] = useState<number>(0);
+  const [chainId, setChainID] = useState<number>(chain ? chain.id : 1);
   const [amountIn, setAmountIn] = useState<BigNumberish>("0");
 
   const [greeting, setGreeting] = useState<string>("");
@@ -235,14 +234,14 @@ const HomePage: NextPage = (pageProps) => {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      if (connextService) {
+      if (connextService && selectedAsset) {
         const originRpc = walletClient?.chain.rpcUrls.default.http[0] ?? "";
-        const originTransactingAsset = ARBITRUM_USDT;
+        const originTransactingAsset = selectedAsset.contract_address;
         const destinationRpc =
           polygonClient.chain.rpcUrls.default.http[0] ?? "";
         const destinationDesiredAsset = POLYGON_WETH;
         handleFees(
-          chainToDomainId(chainId),
+          chainToDomainId(selectedAsset.chain_id),
           POLYGON_DOMAIN_ID.toString(),
           originTransactingAsset,
           destinationDesiredAsset,
@@ -272,7 +271,7 @@ const HomePage: NextPage = (pageProps) => {
     amountIn: BigNumberish
   ) => {
     try {
-      if (connextService && amountIn.toString().length > 0) {
+      if (connextService && amountIn.toString().length > 0 && selectedAsset) {
         let toastNotifier = toast.loading("Calculating fees");
         const fee = await connextService.estimateRelayerFee(
           originDomain,
@@ -282,7 +281,9 @@ const HomePage: NextPage = (pageProps) => {
           await connextService.getEstimateAmountReceivedHelper({
             originDomain: +originDomain,
             destinationDomain: +destinationDomain,
-            amountIn: amountIn.toString(),
+            amountIn: utils
+              .parseUnits(amountIn.toString(), selectedAsset.decimals)
+              .toString(),
             originRpc,
             destinationRpc,
             fromAsset: originTransactingAsset,
@@ -334,7 +335,7 @@ const HomePage: NextPage = (pageProps) => {
     destinationRpc: string,
     amountIn: BigNumberish
   ) => {
-    if (!relayerFee || !connextService || !address) {
+    if (!relayerFee || !connextService || !address || !selectedAsset) {
       toast.info("Services not intitialised", { autoClose: 1000 });
       return;
     }
@@ -346,7 +347,7 @@ const HomePage: NextPage = (pageProps) => {
       originTransactingAsset,
       destinationDesiredAsset,
       destinationRpc,
-      amountIn,
+      utils.parseUnits(amountIn.toString(), selectedAsset.decimals).toString(),
       relayerFee,
       address as `0x${string}`,
       greeting,
@@ -553,15 +554,15 @@ const HomePage: NextPage = (pageProps) => {
 
               <button
                 onClick={() => {
-                  if (connextService) {
+                  if (connextService && selectedAsset) {
                     const originRpc =
                       walletClient?.chain.rpcUrls.default.http[0] ?? "";
                     const destinationRpc =
                       polygonClient.chain.rpcUrls.default.http[0] ?? "";
                     handleGreet(
-                      chainToDomainId(chainId),
+                      chainToDomainId(selectedAsset.chain_id),
                       POLYGON_DOMAIN_ID.toString(),
-                      ARBITRUM_USDT,
+                      selectedAsset.contract_address,
                       POLYGON_WETH,
                       originRpc,
                       destinationRpc,
