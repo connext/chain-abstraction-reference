@@ -56,7 +56,7 @@ const HomePage: NextPage = (pageProps) => {
     ConnextService | undefined
   >(undefined);
 
-  const [chainId, setChainID] = useState<number>(chain ? chain.id : 1);
+  // const [chainId, setChainID] = useState<number>(0);
   const [amountIn, setAmountIn] = useState<BigNumberish>("0");
 
   const [greeting, setGreeting] = useState<string>("");
@@ -93,9 +93,6 @@ const HomePage: NextPage = (pageProps) => {
   useEffect(() => {
     const initServices = async () => {
       if (walletClient && address) {
-        const chainId = await walletClient.getChainId();
-        setChainID(chainId);
-
         const sdkConfig: SdkConfig = {
           signerAddress: address,
           network: "mainnet" as const,
@@ -120,33 +117,48 @@ const HomePage: NextPage = (pageProps) => {
       }
     };
 
-    console.log("initing services and wallet client");
     initServices();
+  }, [walletClient]);
+
+  useEffect(() => {
+    if (selectedAsset?.chain_id === chain?.id) {
+      setSendEnabled(true);
+    } else {
+      setSendEnabled(false);
+      setSelectedAsset(null);
+    }
   }, [walletClient]);
 
   // Updates balance on token switch
   useEffect(() => {
     if (balanceData) {
       setBalance(`${balanceData.formatted.substring(0, 8)} ${balanceData.symbol}`);
+      setSendEnabled(true);
     } else {
       setBalance(undefined);
       setSendEnabled(false);
-    }
-    if (!address) {
-      setChainID(0);
     }
   }, [address, balanceData]);
 
   // Switches chain if selected asset is for a different chain
   useEffect(() => {
+    const switchChain = async () => {
+      if (selectedAsset?.chain_id !== chain?.id) {
+        try {
+          await walletClient?.switchChain({id: selectedAsset?.chain_id as number});
+          setSendEnabled(true);
+        } catch (err) {
+          setSendEnabled(false);
+          setSelectedAsset(null);
+          toast.error("User rejected chain switch.", { autoClose: 2000 });
+        }
+      }
+    }
+
     if (initialRender.current) {
       initialRender.current = false;
     } else {
-      if (selectedAsset?.chain_id !== chainId) {
-        walletClient?.switchChain({id: selectedAsset?.chain_id as number});
-      }
-
-      setSendEnabled(true);
+      switchChain();
     }
   }, [selectedAsset]);
 
@@ -461,16 +473,14 @@ const HomePage: NextPage = (pageProps) => {
                 </p>
                 {/* using chainID for logic
                 MM connected ? chainID : no chainID */}
-                {selectedAsset && (
-                  <p className="text-[#A5A5A5] text-xs font-semibold">
-                    Balance :{" "}
-                    {balance
-                      ? balance
-                      : chainId !== 0
-                      ? "loading"
-                      : "Wallet not connected"}
-                  </p>
-                )}
+                <p className="text-[#A5A5A5] text-xs font-semibold">
+                  Balance :{" "}
+                  {balance
+                    ? balance
+                    : chain?.id !== 0
+                    ? "loading"
+                    : "Wallet not connected"}
+                </p>
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-3">
                 <div
