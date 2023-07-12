@@ -70,7 +70,7 @@ const HomePage: NextPage = (pageProps) => {
   const [isLoadingGreetings, setIsLoadingGreetings] = useState<boolean>(false);
   const [triggerRead, setTriggerRead] = useState(false);
 
-  const [hash, setHash] = useState<string | null>(null);
+  const [txHash, setTxHash] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [numConfetti, setNumConfetti] = useState(0);
   const [balance, setBalance] = useState<string | undefined>(undefined);
@@ -187,6 +187,8 @@ const HomePage: NextPage = (pageProps) => {
           data as string,
           ...prevGreetingList,
         ]);
+        setSuccess(true);
+        toast.success("The greeting was updated!");
       }
 
     };
@@ -327,14 +329,14 @@ const HomePage: NextPage = (pageProps) => {
 
     if (hash) {
       toast.update(toastGreeting, {
-        type: "success",
-        render: "Greeting Submitted",
-        autoClose: 1000,
+        type: "info",
+        render: "Greeting submitted! Waiting for xcall to finalize on Polygon...",
+        autoClose: 5000,
         isLoading: false,
       });
       setPendingGreeting(greeting);
-      setHash(hash);
-      setSuccess(true);
+      setTxHash(hash);
+      setSuccess(false);
     }
     if (err) {
       toast.dismiss(toastGreeting);
@@ -379,7 +381,7 @@ const HomePage: NextPage = (pageProps) => {
           </div>
 
           <h2 className="text-6xl text-white py-6">
-            Chain Abstraction Reference
+            Chain Abstraction Examples
           </h2>
           <p className="text-gray-500 text-xl">
             Call contracts from anywhere with any asset!
@@ -391,7 +393,7 @@ const HomePage: NextPage = (pageProps) => {
             </p>
             <div className="w-72 border border-gray-600 h-10 rounded flex justify-between items-center box-border px-4 cursor-pointer mb-4">
               <p className="text-white text-xs font-semibold">
-                Crosschain Greeting
+                Greeter on Polygon
               </p>
               <Image src={DownArrow} alt="DownArrow" width={10} height={10} />
             </div>
@@ -399,7 +401,7 @@ const HomePage: NextPage = (pageProps) => {
           <div className="flex flex-row justify-between mt-12">
             <div className="w-[407px] h-[472px] bg-[#292929] box-border rounded-sm box-border p-6">
               <p className="text-xl text-white font-semibold">
-                Pay to update your greeting
+                Pay to update the Greeter contract
               </p>
               <div className="flex justify-between mt-12">
                 <p className="text-[#A5A5A5] text-xs font-semibold">
@@ -514,6 +516,7 @@ const HomePage: NextPage = (pageProps) => {
                 Send
               </button>
             </div>
+
             <div className="w-[407px] h-[472px] bg-[#292929] box-border rounded-sm text-white p-6">
               <div className="flex justify-between items-center">
                 <p className="text-xl">Greeter Contract</p>
@@ -525,17 +528,27 @@ const HomePage: NextPage = (pageProps) => {
                 />
               </div>
 
-              <p className="text-lg mt-10 mb-5">Greetings</p>
-              <div className="border border-[#3E3E3E] h-[300px] box-border p-6">
+              <p className="text-[#21C1FC] mt-5">Greeting: {greetingList[0]}</p>
+
+              <div className="mb-5">
+                {pendingGreeting ? (
+                  <p className="text-stone-400 animate-pulse">(pending): {pendingGreeting}</p>
+                ) : (
+                  <p className="text-transparent">(pending): {pendingGreeting}</p>
+                )}
+              </div>
+
+              <p className="mt-5 mb-2">Greetings history:</p>
+
+              <div className="border border-[#3E3E3E] h-[280px] box-border p-6">
                 <div className="ml-5 overflow-scroll h-full">
                   {isLoadingGreetings ? (
                     <p>Loading greetings...</p>
                   ) : greetingList && greetingList.length ? (
                     <div>
                       <ul>
-                        {pendingGreeting && <p style={{ color: "grey" }}>{pendingGreeting}</p>}
-                        {greetingList.map((greeting) => {
-                          return <p>{greeting}</p>;
+                        {greetingList.slice(1).map((greeting, index) => {
+                          return <p key={index}>{greeting}</p>;
                         })}
                       </ul>
                     </div>
@@ -548,34 +561,29 @@ const HomePage: NextPage = (pageProps) => {
           </div>
 
           <div className="flex flex-col justify-center items-center mt-10">
-            {hash && (
-              <p className="text-sm text-white italic">
+            {txHash && (
+              <p className="text-white italic animate-bounce">
                 You can check the transaction status on connextscan by clicking{" "}
                 <a
                   className="text-blue-800"
-                  href={`https://connextscan.io/tx/${hash}?src=search`}
+                  href={`https://connextscan.io/tx/${txHash}?src=search`}
                 >
                   here.
                 </a>
               </p>
             )}
-
-            <p className="text-sm text-white mt-10">
-              Pay to update a greeter contract on destination using any asset
-              from any chain
-            </p>
           </div>
         </main>
 
-        <footer className="text-sm text-white italic">
-          For more information refer to the official Connext documentation{" "}
+        <footer className="text-sm text-white italic mb-5">
+          For more information refer to the official {" "}
           <a
-            className="text-blue-800"
+            className="text-blue-500"
             href="https://docs.connext.network/"
             target="_blank"
             rel="noreferrer"
           >
-            here
+            Connext documentation
           </a>
           .
         </footer>
