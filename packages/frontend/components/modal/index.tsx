@@ -1,13 +1,22 @@
 import { FiSearch } from "react-icons/fi";
 import Asset from "../Asset";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const Modal = ({
   isModalOpen,
   handleModalHelper,
+  handleSelectedAssetHelper,
 }: {
   isModalOpen: boolean;
   handleModalHelper: (open: boolean) => void;
+  handleSelectedAssetHelper: (asset: {
+    symbol: string;
+    chain_id: number;
+    decimals: number;
+    contract_address: string;
+    image: string;
+    chain_logo: string | undefined;
+  }) => void;
 }) => {
   const [search, setSearch] = useState<string>("");
 
@@ -15,7 +24,7 @@ const Modal = ({
     handleModalHelper(false);
   };
 
-  const handleModalClick = (e) => {
+  const handleModalClick = (e: any) => {
     e.stopPropagation();
   };
 
@@ -65,7 +74,11 @@ const Modal = ({
                   </div>
                   <div className="w-full mx-auto pt-4 pb-2 h-[350px] overflow-scroll">
                     <div className="flex w-full flex-wrap items-center mt-1 mb-4  ">
-                      <Asset search={search} />
+                      <Asset
+                        handleSelectedAssetHelper={handleSelectedAssetHelper}
+                        search={search}
+                        handleModalHelper={handleModalHelper}
+                      />
                     </div>
                   </div>
                 </div>

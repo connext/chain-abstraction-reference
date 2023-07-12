@@ -78,6 +78,15 @@ const HomePage: NextPage = (pageProps) => {
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
+  const [selectedAsset, setSelectedAsset] = useState<{
+    symbol: string;
+    chain_id: number;
+    decimals: number;
+    contract_address: string;
+    image: string;
+    chain_logo: string | undefined;
+  } | null>(null);
+
   useEffect(() => {
     const initServices = async () => {
       if (walletClient && address) {
@@ -304,6 +313,17 @@ const HomePage: NextPage = (pageProps) => {
     }
   };
 
+  const handleSelectedAssetHelper = (asset: {
+    symbol: string;
+    chain_id: number;
+    decimals: number;
+    contract_address: string;
+    image: string;
+    chain_logo: string | undefined;
+  }) => {
+    setSelectedAsset(asset);
+  };
+
   const handleGreet = async (
     originDomain: string,
     destinationDomain: string,
@@ -374,7 +394,11 @@ const HomePage: NextPage = (pageProps) => {
 
       <ToastContainer position="top-center" />
       {toastNotifier}
-      <Modal isModalOpen={isModalOpen} handleModalHelper={handleModalHelper} />
+      <Modal
+        handleSelectedAssetHelper={handleSelectedAssetHelper}
+        isModalOpen={isModalOpen}
+        handleModalHelper={handleModalHelper}
+      />
       <div className="w-9/12">
         <main className="min-h-screen">
           <div className="flex justify-between w-full py-4">
@@ -430,21 +454,55 @@ const HomePage: NextPage = (pageProps) => {
                   className="flex items-center cursor-pointer"
                   onClick={() => setIsModalOpen(true)}
                 >
-                  <Image src={ETH_LOGO} alt="ETH Logo" width={20} height={20} />
+                  {selectedAsset ? (
+                    <div className="relative">
+                      <Image
+                        src={selectedAsset.image}
+                        alt={selectedAsset.symbol}
+                        width={25}
+                        height={25}
+                      />
+                      <Image
+                        className="m-0 absolute right-0 top-5"
+                        src={selectedAsset.chain_logo as string}
+                        width={10}
+                        height={10}
+                        alt="Down arrow"
+                      />
+                    </div>
+                  ) : (
+                    <Image
+                      src={ETH_LOGO}
+                      alt="ETH Logo"
+                      width={20}
+                      height={20}
+                    />
+                  )}
+
                   <div className="box-border py-1">
-                    <p className="text-white mx-2 my-0 flex items-center">
-                      USDT{" "}
-                      <span>
-                        <Image
-                          className="h-[8px] w-[10px] mx-2"
-                          src={DownArrow}
-                          alt="Down arrow"
-                        />
-                      </span>
-                    </p>
-                    <p className="text-xs text-[#A5A5A5] mx-2 my-0">
-                      On Arbitrum
-                    </p>
+                    {selectedAsset ? (
+                      <p className="text-white mx-2 my-0 flex items-center">
+                        {selectedAsset.symbol}{" "}
+                        <span>
+                          <Image
+                            className="h-[8px] w-[10px] mx-2"
+                            src={DownArrow}
+                            alt="Down arrow"
+                          />
+                        </span>
+                      </p>
+                    ) : (
+                      <p className="text-white mx-2 my-0 flex items-center">
+                        USDT{" "}
+                        <span>
+                          <Image
+                            className="h-[8px] w-[10px] mx-2"
+                            src={DownArrow}
+                            alt="Down arrow"
+                          />
+                        </span>
+                      </p>
+                    )}
                   </div>
                 </div>
                 <input
