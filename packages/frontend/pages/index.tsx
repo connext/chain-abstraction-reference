@@ -50,11 +50,6 @@ const HomePage: NextPage = (pageProps) => {
   const polygonClient = usePublicClient({ chainId: POLYGON_CHAIN_ID });
   const publicClient = usePublicClient();
   const { chain } = useNetwork();
-  const { data: balanceData } = useBalance({
-    address,
-    token: ARBITRUM_USDT,
-    chainId: chain?.id,
-  });
 
   const [relayerFee, setRelayerFee] = useState<string | undefined>(undefined);
   const [quotedAmountOut, setQuotedAmountOut] = useState<string | null>(null);
@@ -86,6 +81,12 @@ const HomePage: NextPage = (pageProps) => {
     image: string;
     chain_logo: string | undefined;
   } | null>(null);
+
+  const { data: balanceData } = useBalance({
+    address,
+    token: selectedAsset?.contract_address as `0x${string}`,
+    chainId: selectedAsset?.chain_id,
+  });
 
   useEffect(() => {
     const initServices = async () => {
@@ -122,7 +123,7 @@ const HomePage: NextPage = (pageProps) => {
 
   // Will trigger on token change
   useEffect(() => {
-    if (balanceData) {
+    if (balanceData && selectedAsset) {
       setBalance(`${balanceData.formatted} ${balanceData.symbol}`);
     } else {
       setBalance(undefined);
@@ -440,21 +441,23 @@ const HomePage: NextPage = (pageProps) => {
                 </p>
                 {/* using chainID for logic
                 MM connected ? chainID : no chainID */}
-                <p className="text-[#A5A5A5] text-xs font-semibold">
-                  Balance :{" "}
-                  {balance
-                    ? balance
-                    : chainId !== 0
-                    ? "loading"
-                    : "Wallet not connected"}
-                </p>
+                {selectedAsset && (
+                  <p className="text-[#A5A5A5] text-xs font-semibold">
+                    Balance :{" "}
+                    {balance
+                      ? balance
+                      : chainId !== 0
+                      ? "loading"
+                      : "Wallet not connected"}
+                  </p>
+                )}
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-3">
                 <div
                   className="flex items-center cursor-pointer"
                   onClick={() => setIsModalOpen(true)}
                 >
-                  {selectedAsset ? (
+                  {selectedAsset && (
                     <div className="relative">
                       <Image
                         src={selectedAsset.image}
@@ -470,13 +473,6 @@ const HomePage: NextPage = (pageProps) => {
                         alt="Down arrow"
                       />
                     </div>
-                  ) : (
-                    <Image
-                      src={ETH_LOGO}
-                      alt="ETH Logo"
-                      width={20}
-                      height={20}
-                    />
                   )}
 
                   <div className="box-border py-1">
@@ -492,8 +488,8 @@ const HomePage: NextPage = (pageProps) => {
                         </span>
                       </p>
                     ) : (
-                      <p className="text-white mx-2 my-0 flex items-center">
-                        USDT{" "}
+                      <p className="text-white text-xs mx-2 my-0 flex items-center">
+                        Select Token{" "}
                         <span>
                           <Image
                             className="h-[8px] w-[10px] mx-2"
