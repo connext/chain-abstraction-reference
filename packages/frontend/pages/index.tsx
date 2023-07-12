@@ -12,7 +12,7 @@ import {
   useBalance,
   useNetwork,
 } from "wagmi";
-import { parseAbiItem } from "viem";
+import { parseAbiItem, Hex } from "viem";
 
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
@@ -80,14 +80,16 @@ const HomePage: NextPage = (pageProps) => {
     image: string;
     chain_logo: string | undefined;
   } | null>(null);
-  const [sendEnabled, setSendEnabled] = useState<boolean>(false);
 
   const { data: balanceData } = useBalance({
     address,
-    token: selectedAsset?.contract_address as `0x${string}`,
-    chainId: selectedAsset?.chain_id,
+    token: selectedAsset?.contract_address as Hex,
+    chainId: chain?.id,
   });
 
+  const [sendEnabled, setSendEnabled] = useState<boolean>(false);
+
+  // Initializes connext service
   useEffect(() => {
     const initServices = async () => {
       if (walletClient && address) {
@@ -118,21 +120,37 @@ const HomePage: NextPage = (pageProps) => {
       }
     };
 
+    console.log("initing services and wallet client");
     initServices();
   }, [walletClient]);
 
-  // Will trigger on token change
+  // Updates balance on token switch
   useEffect(() => {
-    if (balanceData && selectedAsset) {
-      setBalance(`${balanceData.formatted} ${balanceData.symbol}`);
+    if (balanceData) {
+      setBalance(`${balanceData.formatted.substring(0, 8)} ${balanceData.symbol}`);
     } else {
       setBalance(undefined);
+      setSendEnabled(false);
     }
     if (!address) {
       setChainID(0);
     }
   }, [address, balanceData]);
 
+  // Switches chain if selected asset is for a different chain
+  useEffect(() => {
+    if (initialRender.current) {
+      initialRender.current = false;
+    } else {
+      if (selectedAsset?.chain_id !== chainId) {
+        walletClient?.switchChain({id: selectedAsset?.chain_id as number});
+      }
+
+      setSendEnabled(true);
+    }
+  }, [selectedAsset]);
+
+  // Fetches greetings from events
   useEffect(() => {
     const getTargetContractLogs = async () => {
       setIsLoadingGreetings(true);
@@ -183,9 +201,7 @@ const HomePage: NextPage = (pageProps) => {
     getTargetContractLogs();
   }, []);
 
-  // Need a hook for token change for triggering the function
-  // to get the balance
-
+  // Queries the contract's current greeting
   useEffect(() => {
     const readTargetContract = async () => {
       const data = await polygonClient.readContract({
@@ -213,6 +229,7 @@ const HomePage: NextPage = (pageProps) => {
     }
   }, [triggerRead]);
 
+  // Sets up listener for GreetingUpdated event
   useEffect(() => {
     let unwatch: any;
     const watchTargetContract = async () => {
@@ -233,6 +250,7 @@ const HomePage: NextPage = (pageProps) => {
     };
   }, []);
 
+  // Calculates fees on user input
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (connextService && selectedAsset) {
@@ -272,8 +290,8 @@ const HomePage: NextPage = (pageProps) => {
     amountIn: BigNumberish
   ) => {
     try {
-      if (connextService && amountIn.toString().length > 0 && selectedAsset) {
-        let toastNotifier = toast.loading("Calculating fees");
+      if (connextService && amountIn.toString().length > 0) {
+        let toastNotifier = toast.loading("Calculating fees...");
         const fee = await connextService.estimateRelayerFee(
           originDomain,
           destinationDomain
@@ -303,7 +321,7 @@ const HomePage: NextPage = (pageProps) => {
 
         setRelayerFee(fee);
         toast.update(toastNotifier, {
-          render: "Calculating Fees Done",
+          render: "Calculated fees!",
           type: "success",
           isLoading: false,
           autoClose: 2000,
@@ -325,7 +343,6 @@ const HomePage: NextPage = (pageProps) => {
     chain_logo: string | undefined;
   }) => {
     setSelectedAsset(asset);
-    setSendEnabled(true);
   };
 
   const handleGreet = async (
@@ -337,11 +354,11 @@ const HomePage: NextPage = (pageProps) => {
     destinationRpc: string,
     amountIn: BigNumberish
   ) => {
-    if (!relayerFee || !connextService || !address || !selectedAsset) {
-      toast.info("Services not intitialised", { autoClose: 1000 });
+    if (!relayerFee || !connextService || !address) {
+      toast.info("Services not initialized.", { autoClose: 1000 });
       return;
     }
-    const toastGreeting = toast.loading("Submitting Greeting");
+    const toastGreeting = toast.loading("Submitting greeting...");
     const { err, hash } = await handleGreetHelper(
       connextService as ConnextService,
       originDomain,
@@ -361,7 +378,7 @@ const HomePage: NextPage = (pageProps) => {
       toast.update(toastGreeting, {
         type: "info",
         render:
-          "Greeting submitted! Waiting for xcall to finalize on Polygon...",
+          "Greeting submitted! Current greeting will be updated when xcall finalizes on Polygon.",
         autoClose: 5000,
         isLoading: false,
       });
@@ -371,7 +388,7 @@ const HomePage: NextPage = (pageProps) => {
     }
     if (err) {
       toast.dismiss(toastGreeting);
-      toast.error("Failed to submit greeting", { autoClose: 1000 });
+      toast.error("Failed to submit greeting.", { autoClose: 1000 });
     }
   };
 
@@ -440,7 +457,7 @@ const HomePage: NextPage = (pageProps) => {
               </p>
               <div className="flex justify-between mt-12">
                 <p className="text-[#A5A5A5] text-xs font-semibold">
-                  Your Payment
+                  Payment
                 </p>
                 {/* using chainID for logic
                 MM connected ? chainID : no chainID */}
@@ -506,6 +523,7 @@ const HomePage: NextPage = (pageProps) => {
                 </div>
                 <input
                   className="bg-transparent text-right text-white box-border p-3 outline-none"
+                  placeholder="0"
                   onChange={(e) => {
                     setAmountIn(e.target.value);
                   }}
@@ -513,13 +531,13 @@ const HomePage: NextPage = (pageProps) => {
               </div>
               <div className="flex justify-between mt-6">
                 <p className="text-[#A5A5A5] text-xs font-semibold">
-                  Your Greeting
+                  Greeting
                 </p>
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-8">
                 <div className="flex items-center">
                   <input
-                    placeholder="Type your greeting"
+                    placeholder="Your new greeting"
                     className="bg-transparent  text-white box-border p-3 outline-none w-100"
                     onChange={(e) => {
                       setGreeting(e.target.value);
@@ -531,7 +549,7 @@ const HomePage: NextPage = (pageProps) => {
               {relayerFee && (
                 <div className="flex flex-row justify-between my-2">
                   <p className="text-white text-xs text-[#A5A5A5]">
-                    Relayer Fee:{" "}
+                    Relayer fee:{" "}
                   </p>
                   <p className="text-white text-xs text-[#A5A5A5]">
                     {utils.formatEther(relayerFee).toString().slice(0, 8)} ETH
@@ -542,7 +560,7 @@ const HomePage: NextPage = (pageProps) => {
               {quotedAmountOut && (
                 <div className="flex flex-row justify-between my-2">
                   <p className="text-white text-xs text-[#A5A5A5]">
-                    Estimate Amount Out:{" "}
+                    Estimated amount received:{" "}
                   </p>
                   <p className="text-white text-xs text-[#A5A5A5]">
                     {utils
@@ -596,7 +614,10 @@ const HomePage: NextPage = (pageProps) => {
                 />
               </div>
 
-              <p className="text-[#21C1FC] mt-5">Current greeting: {greetingList[0]}</p>
+              <p className="mt-5">
+                <span className="text-[#21C1FC]">Current greeting: </span>
+                <span className="text-green">{greetingList[0]}</span>
+              </p>
 
               <div className="mb-5">
                 {pendingGreeting ? (
@@ -610,7 +631,7 @@ const HomePage: NextPage = (pageProps) => {
                 )}
               </div>
 
-              <p className="mt-5 mb-2">Greetings history:</p>
+              <p className="mt-5 mb-2 text-[#21C1FC]">Past greetings:</p>
 
               <div className="border border-[#3E3E3E] h-[280px] box-border p-6">
                 <div className="ml-5 overflow-scroll h-full">
