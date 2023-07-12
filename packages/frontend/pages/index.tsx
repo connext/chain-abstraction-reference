@@ -20,7 +20,7 @@ import Confetti from "react-confetti";
 import { Id, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import { BigNumberish, ethers, utils } from "ethers";
+import { BigNumberish, utils } from "ethers";
 
 import { handleGreetHelper } from "../utils/handleGreetHelper";
 import { chainIdToRPC, domainToChainID, chainToDomainId } from "../utils/utils";
@@ -65,7 +65,7 @@ const HomePage: NextPage = (pageProps) => {
   const [amountIn, setAmountIn] = useState<BigNumberish>("0");
 
   const [greeting, setGreeting] = useState<string>("");
-  const [currentGreeting, setCurrentGreeting] = useState<string>("");
+  const [pendingGreeting, setPendingGreeting] = useState<string | null>(null);
   const [greetingList, setGreetingList] = useState<string[]>([]);
   const [isLoadingGreetings, setIsLoadingGreetings] = useState<boolean>(false);
   const [triggerRead, setTriggerRead] = useState(false);
@@ -107,12 +107,6 @@ const HomePage: NextPage = (pageProps) => {
 
     initServices();
   }, [walletClient]);
-
-  useEffect(() => {
-    if (greetingList.length > 0) {
-      setCurrentGreeting(greetingList[0]);
-    }
-  }, [greetingList]);
 
   // Will trigger on token change
   useEffect(() => {
@@ -186,12 +180,15 @@ const HomePage: NextPage = (pageProps) => {
         abi: GreeterABI,
         functionName: "greeting",
       });
+      
+      if (data === pendingGreeting) {
+        setPendingGreeting(null);
+        setGreetingList((prevGreetingList) => [
+          data as string,
+          ...prevGreetingList,
+        ]);
+      }
 
-      setCurrentGreeting(data as string);
-      setGreetingList((prevGreetingList) => [
-        data as string,
-        ...prevGreetingList,
-      ]);
     };
 
     // Skip initial render to prevent duplicate current greeting
@@ -335,6 +332,7 @@ const HomePage: NextPage = (pageProps) => {
         autoClose: 1000,
         isLoading: false,
       });
+      setPendingGreeting(greeting);
       setHash(hash);
       setSuccess(true);
     }
@@ -467,7 +465,7 @@ const HomePage: NextPage = (pageProps) => {
                     Relayer Fee:{" "}
                   </p>
                   <p className="text-white text-xs text-[#A5A5A5]">
-                    {ethers.utils
+                    {utils
                       .formatEther(relayerFee)
                       .toString()
                       .slice(0, 8)}{" "}
@@ -482,7 +480,7 @@ const HomePage: NextPage = (pageProps) => {
                     Estimate Amount Out:{" "}
                   </p>
                   <p className="text-white text-xs text-[#A5A5A5]">
-                    {ethers.utils
+                    {utils
                       .formatUnits(quotedAmountOut, 18)
                       .toString()
                       .slice(0, 8)}{" "}
@@ -535,6 +533,7 @@ const HomePage: NextPage = (pageProps) => {
                   ) : greetingList && greetingList.length ? (
                     <div>
                       <ul>
+                        {pendingGreeting && <p style={{ color: "grey" }}>{pendingGreeting}</p>}
                         {greetingList.map((greeting) => {
                           return <p>{greeting}</p>;
                         })}
