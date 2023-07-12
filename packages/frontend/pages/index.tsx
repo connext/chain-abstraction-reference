@@ -31,6 +31,7 @@ import ConnextLOGO from "../assets/CONNEXT_LOGO_PRIMARY_LIGHT 1.png";
 import DownArrow from "../assets/chevron_down.png";
 import ETH_LOGO from "../assets/ETH.png";
 import POLYGON_LOGO from "../assets/POLYGON.png";
+import Modal from "../components/modal";
 
 const ARBITRUM_USDT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
 const POLYGON_CHAIN_ID = 137;
@@ -74,6 +75,8 @@ const HomePage: NextPage = (pageProps) => {
   const [success, setSuccess] = useState<boolean>(false);
   const [numConfetti, setNumConfetti] = useState(0);
   const [balance, setBalance] = useState<string | undefined>(undefined);
+
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
 
   useEffect(() => {
     const initServices = async () => {
@@ -180,7 +183,7 @@ const HomePage: NextPage = (pageProps) => {
         abi: GreeterABI,
         functionName: "greeting",
       });
-      
+
       if (data === pendingGreeting) {
         setPendingGreeting(null);
         setGreetingList((prevGreetingList) => [
@@ -190,7 +193,6 @@ const HomePage: NextPage = (pageProps) => {
         setSuccess(true);
         toast.success("The greeting was updated!");
       }
-
     };
 
     // Skip initial render to prevent duplicate current greeting
@@ -243,6 +245,10 @@ const HomePage: NextPage = (pageProps) => {
 
     return () => clearTimeout(delayDebounceFn);
   }, [amountIn]);
+
+  const handleModalHelper = (open: boolean) => {
+    setIsModalOpen(open);
+  };
 
   let toastNotifier: Id | null = null;
 
@@ -330,7 +336,8 @@ const HomePage: NextPage = (pageProps) => {
     if (hash) {
       toast.update(toastGreeting, {
         type: "info",
-        render: "Greeting submitted! Waiting for xcall to finalize on Polygon...",
+        render:
+          "Greeting submitted! Waiting for xcall to finalize on Polygon...",
         autoClose: 5000,
         isLoading: false,
       });
@@ -367,7 +374,7 @@ const HomePage: NextPage = (pageProps) => {
 
       <ToastContainer position="top-center" />
       {toastNotifier}
-
+      <Modal isModalOpen={isModalOpen} handleModalHelper={handleModalHelper} />
       <div className="w-9/12">
         <main className="min-h-screen">
           <div className="flex justify-between w-full py-4">
@@ -467,11 +474,7 @@ const HomePage: NextPage = (pageProps) => {
                     Relayer Fee:{" "}
                   </p>
                   <p className="text-white text-xs text-[#A5A5A5]">
-                    {utils
-                      .formatEther(relayerFee)
-                      .toString()
-                      .slice(0, 8)}{" "}
-                    ETH
+                    {utils.formatEther(relayerFee).toString().slice(0, 8)} ETH
                   </p>
                 </div>
               )}
@@ -494,7 +497,7 @@ const HomePage: NextPage = (pageProps) => {
               <button
                 onClick={() => {
                   if (connextService) {
-                    const originRpc = 
+                    const originRpc =
                       walletClient?.chain.rpcUrls.default.http[0] ?? "";
                     const destinationRpc =
                       polygonClient.chain.rpcUrls.default.http[0] ?? "";
@@ -532,9 +535,13 @@ const HomePage: NextPage = (pageProps) => {
 
               <div className="mb-5">
                 {pendingGreeting ? (
-                  <p className="text-stone-400 animate-pulse">(pending): {pendingGreeting}</p>
+                  <p className="text-stone-400 animate-pulse">
+                    (pending): {pendingGreeting}
+                  </p>
                 ) : (
-                  <p className="text-transparent">(pending): {pendingGreeting}</p>
+                  <p className="text-transparent">
+                    (pending): {pendingGreeting}
+                  </p>
                 )}
               </div>
 
@@ -576,7 +583,7 @@ const HomePage: NextPage = (pageProps) => {
         </main>
 
         <footer className="text-sm text-white italic mb-5">
-          For more information refer to the official {" "}
+          For more information refer to the official{" "}
           <a
             className="text-blue-500"
             href="https://docs.connext.network/"
