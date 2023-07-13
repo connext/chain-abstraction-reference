@@ -1,6 +1,9 @@
 import { FiSearch } from "react-icons/fi";
 import Asset from "../Asset";
 import { useEffect, useState } from "react";
+import mainnetAssets from "../../config/mainnet/chains.json";
+import { chainIdToChainName } from "../../utils/utils";
+import Image from "next/image";
 
 const Modal = ({
   address,
@@ -22,6 +25,8 @@ const Modal = ({
 }) => {
   const [search, setSearch] = useState<string>("");
 
+  const [chainFilter, setChainFilter] = useState<number | null>(null);
+
   const handleBackdropClick = () => {
     handleModalHelper(false);
   };
@@ -29,6 +34,28 @@ const Modal = ({
   const handleModalClick = (e: any) => {
     e.stopPropagation();
   };
+
+  const chainsContainer = mainnetAssets.map((chains) => {
+    if (chainIdToChainName(chains.chain_id) && chains.chain_id !== 100) {
+      return (
+        <div
+          className="flex items-center justify-center border rounded border-gray-700 p-2 m-2 cursor-pointer hover:bg-blue-700"
+          onClick={() => setChainFilter(chains.chain_id)}
+        >
+          <Image
+            className="h-[20px]"
+            src={chains.image}
+            width={20}
+            height={20}
+            alt={chains.name}
+          />
+          <p className="text-white ml-2 text-xs">{chains.name}</p>
+        </div>
+      );
+    } else {
+      return null;
+    }
+  });
 
   return (
     <>
@@ -75,8 +102,12 @@ const Modal = ({
                     {/* {body} */}
                   </div>
                   <div className="w-full mx-auto pt-4 pb-2 h-[350px] overflow-scroll">
+                    <div className="flex w-full flex-wrap">
+                      {chainsContainer}
+                    </div>
                     <div className="flex w-full flex-wrap items-center mt-1 mb-4  ">
                       <Asset
+                        chainFilter={chainFilter}
                         address={address}
                         handleSelectedAssetHelper={handleSelectedAssetHelper}
                         search={search}
