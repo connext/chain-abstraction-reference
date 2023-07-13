@@ -23,7 +23,12 @@ import "react-toastify/dist/ReactToastify.css";
 import { BigNumberish, utils } from "ethers";
 
 import { handleGreetHelper } from "../utils/handleGreetHelper";
-import { chainIdToRPC, domainToChainID, chainToDomainId } from "../utils/utils";
+import {
+  chainIdToRPC,
+  domainToChainID,
+  chainToDomainId,
+  chainIdToChainName,
+} from "../utils/utils";
 
 import GreeterABI from "../abis/GreeterABI.json";
 
@@ -347,7 +352,6 @@ const HomePage: NextPage = (pageProps) => {
 
         setRelayerFee(fee);
 
-       
         toast.update(toastNotifier, {
           render: "Calculated fees!",
           type: "success",
@@ -430,6 +434,10 @@ const HomePage: NextPage = (pageProps) => {
     }
   }, [success]);
 
+  const myLoader = ({ src }: { src: string }) => {
+    return src;
+  };
+
   return (
     <div className="bg-[#07080a] flex flex-col justify-center items-center">
       <Head>
@@ -506,6 +514,7 @@ const HomePage: NextPage = (pageProps) => {
                   {selectedAsset && (
                     <div className="relative">
                       <Image
+                        loader={myLoader}
                         src={selectedAsset.image}
                         alt={selectedAsset.symbol}
                         width={25}
@@ -524,7 +533,17 @@ const HomePage: NextPage = (pageProps) => {
                   <div className="box-border py-1">
                     {selectedAsset ? (
                       <p className="text-white mx-2 my-0 flex items-center">
-                        {selectedAsset.symbol}{" "}
+                        <div>
+                          <p>{selectedAsset.symbol} </p>
+                          <p className="text-xs">
+                            {
+                              chainIdToChainName(selectedAsset.chain_id).split(
+                                "-"
+                              )[0]
+                            }
+                          </p>
+                        </div>
+
                         <span>
                           <Image
                             className="h-[8px] w-[10px] mx-2"
