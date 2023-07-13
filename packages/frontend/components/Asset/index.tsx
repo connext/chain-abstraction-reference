@@ -21,6 +21,7 @@ const Asset = ({
     image: string;
     chain_logo: string | undefined;
     balance: number | null;
+    tokenBalance: number | null;
   }) => void;
   handleModalHelper: (open: boolean) => void;
 }) => {
@@ -33,6 +34,7 @@ const Asset = ({
       image: string;
       chain_logo: string | undefined;
       balance: number | null;
+      tokenBalance: number | null;
     }[]
   >([]);
 
@@ -45,6 +47,7 @@ const Asset = ({
       image: string;
       chain_logo: string | undefined;
       balance: number | null;
+      tokenBalance: number | null;
     }[]
   >(assets);
 
@@ -86,6 +89,7 @@ const Asset = ({
             image,
             chain_logo: chainMap.get(chain_id),
             balance: null,
+            tokenBalance: null,
           };
         });
       });
@@ -107,6 +111,7 @@ const Asset = ({
         image: string;
         chain_logo: string | undefined;
         balance: number;
+        tokenBalance: number;
       }[] = [];
 
       for (let i = 0; i < supportedChains.length; i++) {
@@ -137,7 +142,13 @@ const Asset = ({
                         ? tokenSymbolMap.get(token.contract_ticker_symbol)
                         : token.logo_url,
                       chain_logo: chainMap.get(data.chain_id),
-                      balance: parseFloat(
+                      balance:
+                        parseFloat(
+                          ethers.utils
+                            .formatUnits(token.balance, token.contract_decimals)
+                            .toString()
+                        ) * token.quote_rate,
+                      tokenBalance: parseFloat(
                         ethers.utils
                           .formatUnits(token.balance, token.contract_decimals)
                           .toString()
@@ -209,9 +220,12 @@ const Asset = ({
                   {chainIdToChainName(token.chain_id).split("-")[0]}
                 </p>
               </div>
-              {token.balance && (
+              {token.balance && token.tokenBalance && (
                 <span className={`whitespace-nowrap absolute right-4 mr-2.5`}>
-                  {token.balance.toFixed(4)}
+                  {token.tokenBalance.toFixed(4)}
+                  {" ($"}
+                  {token.balance.toFixed(2)}
+                  {")"}
                 </span>
               )}
             </div>
