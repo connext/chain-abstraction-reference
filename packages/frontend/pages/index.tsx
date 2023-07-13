@@ -121,7 +121,7 @@ const HomePage: NextPage = (pageProps) => {
   }, [walletClient]);
 
   useEffect(() => {
-    if (selectedAsset?.chain_id === chain?.id) {
+    if (selectedAsset?.chain_id === chain?.id && amountIn.toString() !== "0") {
       setSendEnabled(true);
     } else {
       setSendEnabled(false);
@@ -133,7 +133,7 @@ const HomePage: NextPage = (pageProps) => {
   useEffect(() => {
     if (balanceData) {
       setBalance(`${balanceData.formatted.slice(0, 8)}`);
-      setSendEnabled(true);
+      // setSendEnabled(true);
     } else {
       setBalance(undefined);
       setSendEnabled(false);
@@ -143,9 +143,14 @@ const HomePage: NextPage = (pageProps) => {
   // Switches chain if selected asset is for a different chain
   useEffect(() => {
     const switchChain = async () => {
-      if (selectedAsset?.chain_id !== chain?.id) {
+      if (
+        selectedAsset?.chain_id !== chain?.id &&
+        amountIn.toString() !== "0"
+      ) {
         try {
-          await walletClient?.switchChain({id: selectedAsset?.chain_id as number});
+          await walletClient?.switchChain({
+            id: selectedAsset?.chain_id as number,
+          });
           setSendEnabled(true);
         } catch (err) {
           setSendEnabled(false);
@@ -153,7 +158,7 @@ const HomePage: NextPage = (pageProps) => {
           toast.error("User rejected chain switch.", { autoClose: 2000 });
         }
       }
-    }
+    };
 
     if (initialRender.current) {
       initialRender.current = false;
@@ -282,13 +287,18 @@ const HomePage: NextPage = (pageProps) => {
         );
       }
     }, 1000);
-
     return () => clearTimeout(delayDebounceFn);
   }, [amountIn]);
 
   const handleModalHelper = (open: boolean) => {
     setIsModalOpen(open);
   };
+
+  useEffect(() => {
+    if (relayerFee && greeting.length) {
+      setSendEnabled(true);
+    }
+  }, [greeting]);
 
   let toastNotifier: Id | null = null;
 
@@ -327,11 +337,17 @@ const HomePage: NextPage = (pageProps) => {
         console.log("amount in: ", amountIn);
         console.log("relayer fee: ", fee);
         console.log("amount received: ", quoteAmount);
+        if (fee && greeting.length) {
+          console.log("hey");
+          setSendEnabled(true);
+        }
         if (quoteAmount) {
           setQuotedAmountOut(quoteAmount);
         }
 
         setRelayerFee(fee);
+
+       
         toast.update(toastNotifier, {
           render: "Calculated fees!",
           type: "success",

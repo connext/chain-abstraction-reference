@@ -3,7 +3,7 @@ import mainnetChains from "../../config/mainnet/chains.json";
 import mainnetAssets from "../../config/mainnet/assets.json";
 import Image from "next/image";
 import { chainIdToChainName } from "../../utils/utils";
-import { BigNumber, ethers } from "ethers";
+import { ethers } from "ethers";
 
 const Asset = ({
   address,
@@ -203,9 +203,12 @@ const Asset = ({
                   height={15}
                 />
               </div>
-              <span className={`whitespace-nowrap font-bold`}>
-                {token.symbol}
-              </span>
+              <div className={`whitespace-nowrap flex flex-col`}>
+                <p className="font-bold text-white">{token.symbol}</p>
+                <p className="text-xs text-white">
+                  {chainIdToChainName(token.chain_id).split("-")[0]}
+                </p>
+              </div>
               {token.balance && (
                 <span className={`whitespace-nowrap absolute right-4 mr-2.5`}>
                   {token.balance.toFixed(4)}

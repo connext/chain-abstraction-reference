@@ -51,6 +51,7 @@ export const chainIdToChainName = (chainId: number) => {
     137: "matic-mainnet",
     42161: "arbitrum-mainnet",
     56: "bsc-mainnet",
+    100: "gnosis-mainnet",
   };
   return chainIdToChainName[chainId];
 }
