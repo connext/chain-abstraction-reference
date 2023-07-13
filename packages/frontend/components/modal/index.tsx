@@ -61,7 +61,7 @@ const Modal = ({
     <>
       {isModalOpen && (
         <div
-          className="flex w-screen h-screen bg-opacity-50 bg-gray-800 justify-center items-center fixed"
+          className="flex w-screen h-screen bg-opacity-50 bg-gray-800 justify-center items-center fixed top-0"
           onClick={handleBackdropClick}
         >
           <div
