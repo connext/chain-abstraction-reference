@@ -6,11 +6,13 @@ import { chainIdToChainName } from "../../utils/utils";
 import { ethers } from "ethers";
 
 const Asset = ({
+  chainFilter,
   address,
   search,
   handleSelectedAssetHelper,
   handleModalHelper,
 }: {
+  chainFilter: number | null;
   address: `0x${string}` | undefined;
   search: string;
   handleSelectedAssetHelper: (asset: {
@@ -64,6 +66,23 @@ const Asset = ({
       setFilteredAsset(assets);
     }
   }, [search]);
+
+  useEffect(() => {
+    if (!chainFilter) {
+      return;
+    }
+    const updatedList = [...assets];
+    const filteredList = updatedList.filter((item) => {
+      if (item.chain_id === chainFilter) {
+        return item;
+      }
+    });
+    if (filteredList.length) {
+      setFilteredAsset(filteredList);
+    } else {
+      setFilteredAsset(assets);
+    }
+  }, [chainFilter]);
 
   useEffect(() => {
     const handleTokenFetcher = async () => {
