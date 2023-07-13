@@ -313,7 +313,7 @@ const HomePage: NextPage = (pageProps) => {
             originDomain: +originDomain,
             destinationDomain: +destinationDomain,
             amountIn: utils
-              .parseUnits(amountIn.toString(), selectedAsset.decimals)
+              .parseUnits(amountIn.toString(), selectedAsset?.decimals)
               .toString(),
             originRpc,
             destinationRpc,
@@ -378,7 +378,7 @@ const HomePage: NextPage = (pageProps) => {
       originTransactingAsset,
       destinationDesiredAsset,
       destinationRpc,
-      utils.parseUnits(amountIn.toString(), selectedAsset.decimals).toString(),
+      utils.parseUnits(amountIn.toString(), selectedAsset?.decimals).toString(),
       relayerFee,
       address as `0x${string}`,
       greeting,

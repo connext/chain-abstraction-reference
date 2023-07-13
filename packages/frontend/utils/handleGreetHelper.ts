@@ -1,11 +1,11 @@
 import ConnextService from "../services/connextService";
-import { BigNumberish, ethers, utils } from "ethers";
+import { BigNumberish, utils, constants } from "ethers";
 import {
   DestinationCallDataParams,
   SwapAndXCallParams,
 } from "@connext/chain-abstraction/dist/types";
 import { Hex, hexToBigInt } from "viem";
-import { PublicClient } from "wagmi";
+import { PublicClient, erc20ABI } from "wagmi";
 import { domainToChainID } from "./utils";
 
 const ARBITRUM_PROTOCOL_TOKEN_ADDRESS =
@@ -24,8 +24,8 @@ export const handleGreetHelper = async (
   relayerFee: string,
   address: string,
   greeting: string,
-  client: any,
-  publicClient: PublicClient
+  walletClient: any,
+  publicClient: PublicClient,
 ) => {
   if (connextService && relayerFee) {
     try {
@@ -60,7 +60,7 @@ export const handleGreetHelper = async (
         },
       };
 
-      const forwardCallData = ethers.utils.defaultAbiCoder.encode(
+      const forwardCallData = utils.defaultAbiCoder.encode(
         ["address", "string"],
         [POLYGON_WETH, greeting]
       );
@@ -75,7 +75,7 @@ export const handleGreetHelper = async (
         destinationDomain,
         fromAsset:
           originTransactingAsset === ARBITRUM_PROTOCOL_TOKEN_ADDRESS
-            ? ethers.constants.AddressZero
+            ? constants.AddressZero
             : originTransactingAsset,
         toAsset: originUSDC,
         amountIn: amountIn.toString(),
@@ -91,34 +91,39 @@ export const handleGreetHelper = async (
       );
       console.log("txRequest: ", txRequest);
 
-      if (txRequest && client) {
+      if (txRequest && walletClient) {
         // Cast the ethers.provider.TransactionRequest types to wagmi-compatible types
         const data = txRequest.data as Hex;
         const from = txRequest.from as Hex;
         const to = txRequest.to as Hex;
         const value = hexToBigInt(txRequest.value as Hex);
 
-        // Approve if needed using Connext SDK
-        const approveRequest = await connextService.approveIfNeeded(
-          originDomain,
-          originTransactingAsset,
-          amountIn.toString()
-        );
+        // Approve to SwapAndXCall contract if needed
+        const swapAndXCallContract = connextService.getSwapAndXcallAddressHelper(originDomain) as Hex;
+        const allowance = await publicClient.readContract({
+          address: originTransactingAsset as Hex,
+          abi: erc20ABI,
+          functionName: "allowance",
+          args: [from, swapAndXCallContract],
+        })
 
-        if (approveRequest) {
-          const approveTx = await client.sendTransaction({
-            account: approveRequest.from as Hex,
-            to: approveRequest.to as Hex,
-            data: approveRequest.data as Hex,
-          });
-          console.log("approveTx: ", approveTx);
+        if (allowance < BigInt(amountIn.toString())) {
+          const { request: approveSwapAndXCallRequest } = await publicClient.simulateContract({
+            address: originTransactingAsset as Hex,
+            abi: erc20ABI,
+            functionName: "approve",
+            args: [swapAndXCallContract, BigInt(amountIn.toString())],
+            account: from,
+          })
+          const approveSwapAndXCallTx = await walletClient.writeContract(approveSwapAndXCallRequest);
+          console.log("approveSwapAndXCallTx: ", approveSwapAndXCallTx);
         } else {
           console.log("Allowance sufficient");
         }
 
         // Estimate gas for swapAndXCall
         const gasEstimate = await publicClient.estimateGas({
-          account: address! as `0x${string}`,
+          account: from,
           to: to,
           data: data,
           value: value,
@@ -126,7 +131,7 @@ export const handleGreetHelper = async (
         console.log("gasEstimate: ", gasEstimate);
 
         // Send swapAndXcall transaction
-        const xcallTxHash = await client.sendTransaction({
+        const xcallTxHash = await walletClient.sendTransaction({
           account: from,
           to: to,
           data: data,

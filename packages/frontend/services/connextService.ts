@@ -1,5 +1,6 @@
 import {
   getPoolFeeForUniV3,
+  getSwapAndXcallAddress,
   getXCallCallData,
   prepareSwapAndXCall,
   getSupportedAssetsForDomain,
@@ -80,6 +81,12 @@ export default class ConnextService {
   ) {
     const swapper = Swapper.UniV3;
     return getXCallCallData(domainID, swapper, forwardCallData, params);
+  }
+
+  getSwapAndXcallAddressHelper(
+    domainID: string,
+  ) {
+    return getSwapAndXcallAddress(domainID);
   }
 
   async prepareSwapAndXCallHelper(
