@@ -41,3 +41,16 @@ export const chainToDomainId = (chainId: number) => {
   };
   return domainToChain[chainId];
 };
+
+
+// Specific to covalent API
+export const chainIdToChainName = (chainId: number) => {
+  const chainIdToChainName: DomainID = {
+    1: "eth-mainnet",
+    10: "optimism-mainnet",
+    137: "matic-mainnet",
+    42161: "arbitrum-mainnet",
+    56: "bsc-mainnet",
+  };
+  return chainIdToChainName[chainId];
+}

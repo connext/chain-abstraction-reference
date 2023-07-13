@@ -428,6 +428,7 @@ const HomePage: NextPage = (pageProps) => {
       <ToastContainer position="top-center" />
       {toastNotifier}
       <Modal
+        address={address}
         handleSelectedAssetHelper={handleSelectedAssetHelper}
         isModalOpen={isModalOpen}
         handleModalHelper={handleModalHelper}
@@ -468,9 +469,7 @@ const HomePage: NextPage = (pageProps) => {
                 Pay to update the Greeter contract
               </p>
               <div className="flex justify-between mt-12">
-                <p className="text-[#A5A5A5] text-xs font-semibold">
-                  Payment
-                </p>
+                <p className="text-[#A5A5A5] text-xs font-semibold">Payment</p>
                 {/* using chainID for logic
                 MM connected ? chainID : no chainID */}
                 <p className="text-[#A5A5A5] text-xs font-semibold">
@@ -479,8 +478,8 @@ const HomePage: NextPage = (pageProps) => {
                     ? balance
                     : chain?.id !== 0
                     ? "loading"
-                    : "Wallet not connected"}
-                  {" "}{balanceData?.symbol}
+                    : "Wallet not connected"}{" "}
+                  {balanceData?.symbol}
                 </p>
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-3">
@@ -541,9 +540,7 @@ const HomePage: NextPage = (pageProps) => {
                 />
               </div>
               <div className="flex justify-between mt-6">
-                <p className="text-[#A5A5A5] text-xs font-semibold">
-                  Greeting
-                </p>
+                <p className="text-[#A5A5A5] text-xs font-semibold">Greeting</p>
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-8">
                 <div className="flex items-center">
@@ -563,7 +560,8 @@ const HomePage: NextPage = (pageProps) => {
                     Relayer fee:{" "}
                   </p>
                   <p className="text-white text-xs text-[#A5A5A5]">
-                    {utils.formatEther(relayerFee).toString().slice(0, 8)} {chain?.nativeCurrency.symbol}
+                    {utils.formatEther(relayerFee).toString().slice(0, 8)}{" "}
+                    {chain?.nativeCurrency.symbol}
                   </p>
                 </div>
               )}

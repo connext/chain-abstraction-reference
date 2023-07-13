@@ -3,10 +3,12 @@ import Asset from "../Asset";
 import { useEffect, useState } from "react";
 
 const Modal = ({
+  address,
   isModalOpen,
   handleModalHelper,
   handleSelectedAssetHelper,
 }: {
+  address: `0x${string}` | undefined;
   isModalOpen: boolean;
   handleModalHelper: (open: boolean) => void;
   handleSelectedAssetHelper: (asset: {
@@ -75,6 +77,7 @@ const Modal = ({
                   <div className="w-full mx-auto pt-4 pb-2 h-[350px] overflow-scroll">
                     <div className="flex w-full flex-wrap items-center mt-1 mb-4  ">
                       <Asset
+                        address={address}
                         handleSelectedAssetHelper={handleSelectedAssetHelper}
                         search={search}
                         handleModalHelper={handleModalHelper}
