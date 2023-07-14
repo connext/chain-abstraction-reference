@@ -13,7 +13,7 @@ const Modal = ({
   handleSelectedAssetHelper,
   assets,
   filteredAsset,
-  setFilteredAsset
+  setFilteredAsset,
 }: {
   address: `0x${string}` | undefined;
   isModalOpen: boolean;
@@ -31,7 +31,7 @@ const Modal = ({
     handleModalHelper(false);
   };
 
-  const handleModalClick = (e: any) => {
+  const handleModalClick = (e: React.SyntheticEvent) => {
     e.stopPropagation();
   };
 

@@ -5,6 +5,15 @@ import { chainIdToChainName } from "../utils/utils";
 import { AssetType } from "../components/Asset";
 import { ethers } from "ethers";
 
+interface Token {
+  balance: string;
+  contract_ticker_symbol: string;
+  contract_decimals: number;
+  contract_address: string;
+  logo_url: string;
+  quote_rate: number;
+  // add any other properties that you know will be in the response
+}
 
 export default function useFetchTokenData(address: string | undefined) {
   const [assets, setAssets] = useState<AssetType[]>([]);
@@ -13,14 +22,14 @@ export default function useFetchTokenData(address: string | undefined) {
   useEffect(() => {
     const handleTokenFetcher = async () => {
       const chainMap = new Map(
-        mainnetChains.map((chain) => [chain.chain_id, chain.image])
+        mainnetChains.map((chain) => [chain.chain_id, chain.image]),
       );
 
       const tokenSymbolMap = new Map(
-        mainnetAssets.map((asset) => [asset.symbol, asset.image])
+        mainnetAssets.map((asset) => [asset.symbol, asset.image]),
       );
 
-      const newAssets = mainnetAssets.flatMap((mainnetAsset) => {
+      const newAssets: AssetType[] = mainnetAssets.flatMap((mainnetAsset) => {
         const { symbol, image } = mainnetAsset;
 
         return mainnetAsset.contracts.map((contract) => {
@@ -48,35 +57,26 @@ export default function useFetchTokenData(address: string | undefined) {
         }
       });
 
-      const assetWithBalance: {
-        symbol: string;
-        chain_id: number;
-        decimals: number;
-        contract_address: string;
-        image: string;
-        chain_logo: string | undefined;
-        balance: number;
-        tokenBalance: number;
-      }[] = [];
+      const assetWithBalance: AssetType[] = [];
 
       for (let i = 0; i < supportedChains.length; i++) {
         if (supportedChains[i] && address) {
           // api call here.
 
-          let headers = new Headers();
+          const headers = new Headers();
           headers.set(
             "Authorization",
-            "Bearer cqt_rQftkJjKvJqfTPKGGdKwqvXFvbr7"
+            "Bearer cqt_rQftkJjKvJqfTPKGGdKwqvXFvbr7",
           );
 
           await fetch(
             `https://api.covalenthq.com/v1/${supportedChains[i]}/address/${address}/balances_v2/`,
-            { method: "GET", headers: headers }
+            { method: "GET", headers: headers },
           )
             .then((resp) => resp.json())
             .then(({ data }) => {
               if (data) {
-                data.items.forEach((token: any) => {
+                data.items.forEach((token: Token) => {
                   if (token.balance !== "0")
                     assetWithBalance.push({
                       symbol: token.contract_ticker_symbol,
@@ -91,12 +91,12 @@ export default function useFetchTokenData(address: string | undefined) {
                         parseFloat(
                           ethers.utils
                             .formatUnits(token.balance, token.contract_decimals)
-                            .toString()
+                            .toString(),
                         ) * token.quote_rate,
                       tokenBalance: parseFloat(
                         ethers.utils
                           .formatUnits(token.balance, token.contract_decimals)
-                          .toString()
+                          .toString(),
                       ),
                     });
                 });
@@ -106,12 +106,15 @@ export default function useFetchTokenData(address: string | undefined) {
       }
 
       assetWithBalance.sort((a, b) => {
-        if (a.balance > b.balance) {
-          return -1;
+        if (a.balance !== null && b.balance !== null) {
+          if (a.balance > b.balance) {
+            return -1;
+          }
+          if (a.balance < b.balance) {
+            return 1;
+          }
         }
-        if (a.balance < b.balance) {
-          return 1;
-        }
+
         return 0;
       });
 

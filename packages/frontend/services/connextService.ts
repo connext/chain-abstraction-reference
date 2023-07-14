@@ -20,10 +20,6 @@ interface DomainID {
   [key: number]: string;
 }
 
-interface ChainID {
-  [key: string]: number;
-}
-
 export const DEPLOYED_ADDRESSES: Record<string, Record<string, string>> = {
   swapandxcall: {
     "6648936": "", // ETH mainnet
@@ -59,14 +55,14 @@ export default class ConnextService {
     domainID: string,
     token0: string,
     token1: string,
-    rpcUrl: string
+    rpcUrl: string,
   ) {
     try {
       const poolFee = await getPoolFeeForUniV3(
         domainID,
         rpcUrl,
         token0,
-        token1
+        token1,
       );
       return poolFee;
     } catch (err) {
@@ -77,21 +73,19 @@ export default class ConnextService {
   async getXCallCallDataHelper(
     domainID: string,
     forwardCallData: string,
-    params: DestinationCallDataParams
+    params: DestinationCallDataParams,
   ) {
     const swapper = Swapper.UniV3;
     return getXCallCallData(domainID, swapper, forwardCallData, params);
   }
 
-  getSwapAndXcallAddressHelper(
-    domainID: string,
-  ) {
+  getSwapAndXcallAddressHelper(domainID: string) {
     return getSwapAndXcallAddress(domainID);
   }
 
   async prepareSwapAndXCallHelper(
     swapAndXCallParams: SwapAndXCallParams,
-    signerAddress: string
+    signerAddress: string,
   ) {
     return prepareSwapAndXCall(swapAndXCallParams, signerAddress);
   }
@@ -109,7 +103,7 @@ export default class ConnextService {
     chainFrom: number,
     chainTo: number,
     originToken: string,
-    amount: BigNumber
+    amount: BigNumber,
   ) {
     const supported = await this.getSupportedChainsByConnext();
 
@@ -121,7 +115,7 @@ export default class ConnextService {
       originDomain,
       destinationDomain,
       originToken,
-      amount
+      amount,
     );
     return estimateReceived;
   }
@@ -130,14 +124,14 @@ export default class ConnextService {
     domainId: string,
     assetId: string,
     amount: string,
-    infiniteApprove?: Boolean
+    infiniteApprove?: boolean,
   ) {
     const { sdkBase } = await create(this.sdkConfig);
     const txRequest = await sdkBase.approveIfNeeded(
       domainId,
       assetId,
       amount,
-      infiniteApprove ? true : false
+      infiniteApprove ? true : false,
     );
     return txRequest;
   }
@@ -196,7 +190,7 @@ export default class ConnextService {
     outputToken: string,
     outputDecimal: number,
     amountIn: BigNumberish,
-    signerAddress: string
+    signerAddress: string,
   ) {
     try {
       const priceImpact = await getPriceImpactForSwaps(
@@ -207,7 +201,7 @@ export default class ConnextService {
         outputToken,
         outputDecimal,
         amountIn,
-        signerAddress
+        signerAddress,
       );
       return priceImpact;
     } catch (err) {

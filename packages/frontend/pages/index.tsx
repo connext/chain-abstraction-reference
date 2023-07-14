@@ -12,7 +12,7 @@ import {
   useBalance,
   useNetwork,
 } from "wagmi";
-import { parseAbiItem, Hex } from "viem";
+import { parseAbiItem, Hex, Log, WatchContractEventReturnType } from "viem";
 
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
@@ -47,7 +47,7 @@ const POLYGON_TARGET_CONTRACT = "0xb5Ed372Bb3413D5A3d384F73e44EB85618f41455";
 const MAX_NUM_GREETINGS = 10;
 const BLOCKS_LOOKBACK = BigInt(100000);
 
-const HomePage: NextPage = (pageProps) => {
+const HomePage: NextPage = () => {
   const initialRender = useRef(true);
   const { width, height } = useWindowSize();
 
@@ -62,7 +62,8 @@ const HomePage: NextPage = (pageProps) => {
   const [connextService, setConnextService] = useState<
     ConnextService | undefined
   >(undefined);
-  const {assets, filteredAsset, setFilteredAsset} = useFetchTokenData(address);
+  const { assets, filteredAsset, setFilteredAsset } =
+    useFetchTokenData(address);
 
   const [amountIn, setAmountIn] = useState<BigNumberish>("0");
 
@@ -122,9 +123,9 @@ const HomePage: NextPage = (pageProps) => {
   // Enable send button if all fields are sane
   useEffect(() => {
     if (
-      selectedAsset?.chain_id === chain?.id && 
-      amountIn.toString() !== "0" && 
-      relayerFee && 
+      selectedAsset?.chain_id === chain?.id &&
+      amountIn.toString() !== "0" &&
+      relayerFee &&
       greeting.length
     ) {
       setSendEnabled(true);
@@ -194,17 +195,28 @@ const HomePage: NextPage = (pageProps) => {
 
       let allGreetings: string[] = [];
 
+      const greetingUpdatedEvent = parseAbiItem(
+        "event GreetingUpdated(string greeting)",
+      );
+
       // Get events from earliest to latest
       while (fromBlock <= toBlock && fromBlock <= currentBlock) {
         const logs = await polygonClient.getLogs({
           address: POLYGON_TARGET_CONTRACT,
-          event: parseAbiItem("event GreetingUpdated(string greeting)"),
+          event: greetingUpdatedEvent,
           fromBlock: fromBlock,
           toBlock: toBlock,
         });
 
         if (logs && logs.length > 0) {
-          const greetings = logs.map((log: any) => log.args.greeting);
+          console.log(logs);
+          const greetings = logs
+            .map(
+              (log: Log<bigint, number, typeof greetingUpdatedEvent>) =>
+                log.args.greeting,
+            )
+            .filter((greeting): greeting is string => greeting !== undefined);
+
           allGreetings = [...allGreetings, ...greetings];
         }
 
@@ -256,13 +268,13 @@ const HomePage: NextPage = (pageProps) => {
 
   // Sets up listener for GreetingUpdated event
   useEffect(() => {
-    let unwatch: any;
+    let unwatch: WatchContractEventReturnType;
     const watchTargetContract = async () => {
       unwatch = polygonClient.watchContractEvent({
         address: POLYGON_TARGET_CONTRACT,
         abi: GreeterABI,
         eventName: "GreetingUpdated",
-        onLogs: (logs) => {
+        onLogs: () => {
           setTriggerRead((prevState) => !prevState);
         },
       });
@@ -291,7 +303,7 @@ const HomePage: NextPage = (pageProps) => {
           destinationDesiredAsset,
           originRpc,
           destinationRpc,
-          amountIn
+          amountIn,
         );
       }
     }, 1000);
@@ -302,7 +314,7 @@ const HomePage: NextPage = (pageProps) => {
     setIsModalOpen(open);
   };
 
-  let toastNotifier: Id | null = null;
+  const toastNotifier: Id | null = null;
 
   const handleFees = async (
     originDomain: string,
@@ -311,14 +323,14 @@ const HomePage: NextPage = (pageProps) => {
     destinationDesiredAsset: string,
     originRpc: string,
     destinationRpc: string,
-    amountIn: BigNumberish
+    amountIn: BigNumberish,
   ) => {
     try {
       if (connextService && amountIn.toString().length > 0) {
-        let toastNotifier = toast.loading("Calculating fees...");
+        const toastNotifier = toast.loading("Calculating fees...");
         const fee = await connextService.estimateRelayerFee(
           originDomain,
-          destinationDomain
+          destinationDomain,
         );
         const quoteAmount =
           await connextService.getEstimateAmountReceivedHelper({
@@ -370,7 +382,7 @@ const HomePage: NextPage = (pageProps) => {
     destinationDesiredAsset: string,
     originRpc: string,
     destinationRpc: string,
-    amountIn: BigNumberish
+    amountIn: BigNumberish,
   ) => {
     if (!relayerFee || !connextService || !address) {
       toast.info("Services not initialized.", { autoClose: 1000 });
@@ -389,7 +401,7 @@ const HomePage: NextPage = (pageProps) => {
       address as `0x${string}`,
       greeting,
       walletClient,
-      publicClient
+      publicClient,
     );
 
     if (hash) {
@@ -492,7 +504,8 @@ const HomePage: NextPage = (pageProps) => {
                     : chain?.id !== 0
                     ? "(select a token)"
                     : "Wallet not connected"}{" "}
-                  {(selectedAsset?.symbol === balanceData?.symbol) && balanceData?.symbol}
+                  {selectedAsset?.symbol === balanceData?.symbol &&
+                    balanceData?.symbol}
                 </p>
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-3">
@@ -504,7 +517,7 @@ const HomePage: NextPage = (pageProps) => {
                     <div className="relative">
                       <Image
                         loader={myLoader}
-                        src={selectedAsset.image}
+                        src={selectedAsset.image as string}
                         alt={selectedAsset.symbol}
                         width={25}
                         height={25}
@@ -527,7 +540,7 @@ const HomePage: NextPage = (pageProps) => {
                           <p className="text-xs">
                             {
                               chainIdToChainName(selectedAsset.chain_id).split(
-                                "-"
+                                "-",
                               )[0]
                             }
                           </p>
@@ -620,7 +633,7 @@ const HomePage: NextPage = (pageProps) => {
                       POLYGON_WETH,
                       originRpc,
                       destinationRpc,
-                      amountIn
+                      amountIn,
                     );
                   } else {
                     console.log("Connext Service not inited");
