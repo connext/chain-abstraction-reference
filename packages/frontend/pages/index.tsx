@@ -148,6 +148,15 @@ const HomePage: NextPage = (pageProps) => {
     }
   }, [address, balanceData]);
 
+  // Clears out inputs when chain is switched
+  useEffect(() => {
+    setSelectedAsset(null);
+    setAmountIn("0");
+    setGreeting("");
+    setRelayerFee(null);
+    setQuotedAmountOut(null);
+  }, [chain]);
+
   // Switches chain if selected asset is for a different chain
   useEffect(() => {
     const switchChain = async () => {
