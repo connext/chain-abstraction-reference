@@ -36,6 +36,8 @@ import ConnextLOGO from "../assets/CONNEXT_LOGO_PRIMARY_LIGHT 1.png";
 import DownArrow from "../assets/chevron_down.png";
 import POLYGON_LOGO from "../assets/POLYGON.png";
 import Modal from "../components/modal";
+import { AssetType } from "../components/Asset";
+import useFetchTokenData from "../hooks/useFetchTokenData";
 
 // const ARBITRUM_USDT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
 const POLYGON_CHAIN_ID = 137;
@@ -60,8 +62,8 @@ const HomePage: NextPage = (pageProps) => {
   const [connextService, setConnextService] = useState<
     ConnextService | undefined
   >(undefined);
+  const {assets, filteredAsset, setFilteredAsset} = useFetchTokenData(address);
 
-  // const [chainId, setChainID] = useState<number>(0);
   const [amountIn, setAmountIn] = useState<BigNumberish>("0");
 
   const [greeting, setGreeting] = useState<string>("");
@@ -76,15 +78,7 @@ const HomePage: NextPage = (pageProps) => {
   const [balance, setBalance] = useState<string | undefined>(undefined);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
-  const [selectedAsset, setSelectedAsset] = useState<{
-    symbol: string;
-    chain_id: number;
-    decimals: number;
-    contract_address: string;
-    image: string;
-    chain_logo: string | undefined;
-  } | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<AssetType | null>(null);
 
   const { data: balanceData } = useBalance({
     address,
@@ -147,6 +141,15 @@ const HomePage: NextPage = (pageProps) => {
       setBalance(undefined);
     }
   }, [address, balanceData]);
+
+  // Clears out inputs when chain is switched
+  useEffect(() => {
+    setSelectedAsset(null);
+    setAmountIn("0");
+    setGreeting("");
+    setRelayerFee(null);
+    setQuotedAmountOut(null);
+  }, [chain]);
 
   // Switches chain if selected asset is for a different chain
   useEffect(() => {
@@ -356,15 +359,7 @@ const HomePage: NextPage = (pageProps) => {
     }
   };
 
-  const handleSelectedAssetHelper = (asset: {
-    symbol: string;
-    chain_id: number;
-    decimals: number;
-    contract_address: string;
-    image: string;
-    chain_logo: string | undefined;
-  }) => {
-    console.log("selected asset: ", asset);
+  const handleSelectedAssetHelper = (asset: AssetType) => {
     setSelectedAsset(asset);
   };
 
@@ -447,6 +442,9 @@ const HomePage: NextPage = (pageProps) => {
         handleSelectedAssetHelper={handleSelectedAssetHelper}
         isModalOpen={isModalOpen}
         handleModalHelper={handleModalHelper}
+        assets={assets}
+        filteredAsset={filteredAsset}
+        setFilteredAsset={setFilteredAsset}
       />
       <div className="w-9/12">
         <main className="min-h-screen">
