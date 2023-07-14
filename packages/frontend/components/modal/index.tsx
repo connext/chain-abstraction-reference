@@ -1,6 +1,6 @@
 import { FiSearch } from "react-icons/fi";
 import Asset from "../Asset";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import mainnetAssets from "../../config/mainnet/chains.json";
 import { chainIdToChainName } from "../../utils/utils";
 import Image from "next/image";
@@ -11,11 +11,17 @@ const Modal = ({
   isModalOpen,
   handleModalHelper,
   handleSelectedAssetHelper,
+  assets,
+  filteredAsset,
+  setFilteredAsset
 }: {
   address: `0x${string}` | undefined;
   isModalOpen: boolean;
   handleModalHelper: (open: boolean) => void;
   handleSelectedAssetHelper: (asset: AssetType) => void;
+  assets: AssetType[];
+  filteredAsset: AssetType[];
+  setFilteredAsset: React.Dispatch<React.SetStateAction<AssetType[]>>;
 }) => {
   const [search, setSearch] = useState<string>("");
 
@@ -106,6 +112,9 @@ const Modal = ({
                         handleSelectedAssetHelper={handleSelectedAssetHelper}
                         search={search}
                         handleModalHelper={handleModalHelper}
+                        assets={assets}
+                        filteredAsset={filteredAsset}
+                        setFilteredAsset={setFilteredAsset}
                       />
                     </div>
                   </div>
