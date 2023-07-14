@@ -115,8 +115,14 @@ export const handleGreetHelper = async (
             args: [swapAndXCallContract, BigInt(amountIn.toString())],
             account: from,
           })
+          
           const approveSwapAndXCallTx = await walletClient.writeContract(approveSwapAndXCallRequest);
           console.log("approveSwapAndXCallTx: ", approveSwapAndXCallTx);
+
+          const approveSwapAndXCallReceipt = await publicClient.waitForTransactionReceipt( 
+            { hash: approveSwapAndXCallTx }
+          )
+          console.log("approveSwapAndXCallReceipt: ", approveSwapAndXCallReceipt);
         } else {
           console.log("Allowance sufficient");
         }
