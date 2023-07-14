@@ -36,6 +36,7 @@ import ConnextLOGO from "../assets/CONNEXT_LOGO_PRIMARY_LIGHT 1.png";
 import DownArrow from "../assets/chevron_down.png";
 import POLYGON_LOGO from "../assets/POLYGON.png";
 import Modal from "../components/modal";
+import { AssetType } from "../components/Asset";
 
 // const ARBITRUM_USDT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
 const POLYGON_CHAIN_ID = 137;
@@ -76,15 +77,7 @@ const HomePage: NextPage = (pageProps) => {
   const [balance, setBalance] = useState<string | undefined>(undefined);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
-  const [selectedAsset, setSelectedAsset] = useState<{
-    symbol: string;
-    chain_id: number;
-    decimals: number;
-    contract_address: string;
-    image: string;
-    chain_logo: string | undefined;
-  } | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<AssetType | null>(null);
 
   const { data: balanceData } = useBalance({
     address,
@@ -365,15 +358,7 @@ const HomePage: NextPage = (pageProps) => {
     }
   };
 
-  const handleSelectedAssetHelper = (asset: {
-    symbol: string;
-    chain_id: number;
-    decimals: number;
-    contract_address: string;
-    image: string;
-    chain_logo: string | undefined;
-  }) => {
-    console.log("selected asset: ", asset);
+  const handleSelectedAssetHelper = (asset: AssetType) => {
     setSelectedAsset(asset);
   };
 

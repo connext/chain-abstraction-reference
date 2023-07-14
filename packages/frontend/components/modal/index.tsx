@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import mainnetAssets from "../../config/mainnet/chains.json";
 import { chainIdToChainName } from "../../utils/utils";
 import Image from "next/image";
+import { AssetType } from "../Asset";
 
 const Modal = ({
   address,
@@ -14,14 +15,7 @@ const Modal = ({
   address: `0x${string}` | undefined;
   isModalOpen: boolean;
   handleModalHelper: (open: boolean) => void;
-  handleSelectedAssetHelper: (asset: {
-    symbol: string;
-    chain_id: number;
-    decimals: number;
-    contract_address: string;
-    image: string;
-    chain_logo: string | undefined;
-  }) => void;
+  handleSelectedAssetHelper: (asset: AssetType) => void;
 }) => {
   const [search, setSearch] = useState<string>("");
 

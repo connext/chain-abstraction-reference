@@ -5,6 +5,17 @@ import Image from "next/image";
 import { chainIdToChainName } from "../../utils/utils";
 import { ethers } from "ethers";
 
+export type AssetType = {
+  symbol: string;
+  chain_id: number;
+  decimals: number;
+  contract_address: string;
+  image: string;
+  chain_logo: string | undefined;
+  balance: number | null;
+  tokenBalance: number | null;
+}
+
 const Asset = ({
   chainFilter,
   address,
@@ -27,18 +38,7 @@ const Asset = ({
   }) => void;
   handleModalHelper: (open: boolean) => void;
 }) => {
-  const [assets, setAssets] = useState<
-    {
-      symbol: string;
-      chain_id: number;
-      decimals: number;
-      contract_address: string;
-      image: string;
-      chain_logo: string | undefined;
-      balance: number | null;
-      tokenBalance: number | null;
-    }[]
-  >([]);
+  const [assets, setAssets] = useState<AssetType[]>([]);
 
   const [filteredAsset, setFilteredAsset] = useState<
     {
