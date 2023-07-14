@@ -210,7 +210,7 @@ const Asset = ({
         filteredAsset.map((token) => {
           return (
             <div
-              className="mb-3 relative hover:bg-slate-100 w-full text-white dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded cursor-pointer flex items-center hover:font-semibold space-x-1 mr-1.5 py-2 px-2"
+              className="mb-3 relative hover:bg-slate-100 w-full text-white hover:bg-slate-800 border border-slate-300 border-slate-600 rounded cursor-pointer flex items-center hover:font-semibold space-x-1 mr-1.5 py-2 px-2"
               onClick={() => {
                 handleSelectedAssetHelper(token);
                 handleModalHelper(false);

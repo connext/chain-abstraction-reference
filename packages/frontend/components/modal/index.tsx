@@ -66,7 +66,7 @@ const Modal = ({
         >
           <div
             id="modal"
-            className=" inset-1/4 w-[400px] h-[500px] z-50 bg-white dark:bg-slate-900 outline-none rounded shadow-lg border-0 flex flex-col "
+            className=" inset-1/4 w-[400px] h-[500px] z-50 bg-slate-900 outline-none rounded shadow-lg border-0 flex flex-col "
             onClick={handleModalClick}
           >
             <div className="relative flex-auto p-4">
@@ -93,7 +93,7 @@ const Modal = ({
                         onChange={(e) => setSearch(e.target.value)}
                         type="search"
                         placeholder="Search"
-                        className="w-full h-10 bg-transparent appearance-none rounded border border-slate-200 dark:border-slate-800 text-sm pl-10 pr-5 outline-none text-white"
+                        className="w-full h-10 bg-transparent appearance-none rounded border border-slate-200 border-slate-800 text-sm pl-10 pr-5 outline-none text-white"
                       />
                       <div className="absolute top-0 left-0 mt-3 ml-4 text-white">
                         <FiSearch className="w-4 h-4 text-white" />
