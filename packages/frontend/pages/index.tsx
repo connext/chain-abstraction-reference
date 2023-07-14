@@ -11,6 +11,7 @@ import {
   usePublicClient,
   useBalance,
   useNetwork,
+  WalletClient,
 } from "wagmi";
 import { parseAbiItem, Hex, Log, WatchContractEventReturnType } from "viem";
 
@@ -400,7 +401,7 @@ const HomePage: NextPage = () => {
       relayerFee,
       address as `0x${string}`,
       greeting,
-      walletClient,
+      walletClient as WalletClient,
       publicClient,
     );
 

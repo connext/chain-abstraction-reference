@@ -8,14 +8,22 @@
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended", // Enables eslint-plugin-prettier
-    "prettier" // Disables rules that conflict with Prettier
+    "plugin:prettier/recommended",
+    "prettier"
   ],
   "rules": {
-    "prettier/prettier": "error" // If Prettier produces any differences in the code, it will be an error
+    "prettier/prettier": "error"
   },
   "env": {
     "browser": true,
     "es2021": true
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.config.js"],
+      "env": {
+        "node": true
+      }
+    }
+  ]
 }
