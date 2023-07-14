@@ -7,7 +7,7 @@ export type AssetType = {
   chain_id: number;
   decimals: number;
   contract_address: string;
-  balance: number;
+  balance: number | null;
   tokenBalance: number | null;
   chain_logo?: string;
   image?: string;
@@ -25,16 +25,7 @@ const Asset = ({
   chainFilter: number | null;
   address: `0x${string}` | undefined;
   search: string;
-  handleSelectedAssetHelper: (asset: {
-    symbol: string;
-    chain_id: number;
-    decimals: number;
-    contract_address: string;
-    image: string;
-    chain_logo: string | undefined;
-    balance: number | null;
-    tokenBalance: number | null;
-  }) => void;
+  handleSelectedAssetHelper: (asset: AssetType) => void;
   handleModalHelper: (open: boolean) => void;
   assets: AssetType[];
   filteredAsset: AssetType[];
@@ -90,7 +81,7 @@ const Asset = ({
               <div className="flex relative">
                 <Image
                   loader={myLoader}
-                  src={token.image}
+                  src={token.image as string}
                   width={30}
                   height={30}
                   className="rounded-full mr-2"
