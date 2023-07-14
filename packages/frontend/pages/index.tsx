@@ -55,7 +55,7 @@ const HomePage: NextPage = (pageProps) => {
   const publicClient = usePublicClient();
   const { chain } = useNetwork();
 
-  const [relayerFee, setRelayerFee] = useState<string | undefined>(undefined);
+  const [relayerFee, setRelayerFee] = useState<string | null>(null);
   const [quotedAmountOut, setQuotedAmountOut] = useState<string | null>(null);
   const [connextService, setConnextService] = useState<
     ConnextService | undefined
@@ -125,49 +125,49 @@ const HomePage: NextPage = (pageProps) => {
     initServices();
   }, [walletClient]);
 
+  // Enable send button if all fields are sane
   useEffect(() => {
-    if (selectedAsset?.chain_id === chain?.id && amountIn.toString() !== "0") {
+    if (
+      selectedAsset?.chain_id === chain?.id && 
+      amountIn.toString() !== "0" && 
+      relayerFee && 
+      greeting.length
+    ) {
       setSendEnabled(true);
     } else {
       setSendEnabled(false);
-      setSelectedAsset(null);
     }
-  }, [walletClient]);
+  }, [selectedAsset, walletClient, relayerFee, greeting]);
 
-  // Updates balance on token switch
+  // Updates shown balance on token or account switch
   useEffect(() => {
-    if (balanceData) {
+    if (balanceData && selectedAsset?.symbol === balanceData.symbol) {
       setBalance(`${balanceData.formatted.slice(0, 8)}`);
-      // setSendEnabled(true);
     } else {
       setBalance(undefined);
-      setSendEnabled(false);
     }
   }, [address, balanceData]);
 
   // Switches chain if selected asset is for a different chain
   useEffect(() => {
     const switchChain = async () => {
-      if (
-        selectedAsset?.chain_id !== chain?.id &&
-        amountIn.toString() !== "0"
-      ) {
-        try {
-          await walletClient?.switchChain({
-            id: selectedAsset?.chain_id as number,
-          });
-          setSendEnabled(true);
-        } catch (err) {
-          setSendEnabled(false);
-          setSelectedAsset(null);
-          toast.error("User rejected chain switch.", { autoClose: 2000 });
-        }
+      try {
+        await walletClient?.switchChain({
+          id: selectedAsset?.chain_id as number,
+        });
+      } catch (err) {
+        setSelectedAsset(null);
+        setAmountIn("0");
+        toast.error("User rejected chain switch.", { autoClose: 2000 });
       }
+
+      setRelayerFee(null);
+      setQuotedAmountOut(null);
     };
 
     if (initialRender.current) {
       initialRender.current = false;
-    } else {
+    } else if (selectedAsset?.chain_id !== chain?.id) {
       switchChain();
     }
   }, [selectedAsset]);
@@ -293,17 +293,11 @@ const HomePage: NextPage = (pageProps) => {
       }
     }, 1000);
     return () => clearTimeout(delayDebounceFn);
-  }, [amountIn]);
+  }, [amountIn, selectedAsset]);
 
   const handleModalHelper = (open: boolean) => {
     setIsModalOpen(open);
   };
-
-  useEffect(() => {
-    if (relayerFee && greeting.length) {
-      setSendEnabled(true);
-    }
-  }, [greeting]);
 
   let toastNotifier: Id | null = null;
 
@@ -342,10 +336,6 @@ const HomePage: NextPage = (pageProps) => {
         console.log("amount in: ", amountIn);
         console.log("relayer fee: ", fee);
         console.log("amount received: ", quoteAmount);
-        if (fee && greeting.length) {
-          console.log("hey");
-          setSendEnabled(true);
-        }
         if (quoteAmount) {
           setQuotedAmountOut(quoteAmount);
         }
@@ -374,6 +364,7 @@ const HomePage: NextPage = (pageProps) => {
     image: string;
     chain_logo: string | undefined;
   }) => {
+    console.log("selected asset: ", asset);
     setSelectedAsset(asset);
   };
 
@@ -501,9 +492,9 @@ const HomePage: NextPage = (pageProps) => {
                   {balance
                     ? balance
                     : chain?.id !== 0
-                    ? "loading"
+                    ? "(select a token)"
                     : "Wallet not connected"}{" "}
-                  {balanceData?.symbol}
+                  {(selectedAsset?.symbol === balanceData?.symbol) && balanceData?.symbol}
                 </p>
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-3">
@@ -569,6 +560,7 @@ const HomePage: NextPage = (pageProps) => {
                 <input
                   className="bg-transparent text-right text-white box-border p-3 outline-none"
                   placeholder="0"
+                  value={amountIn.toString()}
                   onChange={(e) => {
                     setAmountIn(e.target.value);
                   }}
