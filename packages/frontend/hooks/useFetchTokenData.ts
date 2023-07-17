@@ -4,6 +4,7 @@ import mainnetAssets from "../config/mainnet/assets.json";
 import { chainIdToChainName } from "../utils/utils";
 import { AssetType } from "../components/Asset";
 import { ethers } from "ethers";
+import hardCodedAssets from "../config/mainnet/hardCodedAssets.json"
 
 interface Token {
   balance: string;
@@ -12,7 +13,18 @@ interface Token {
   contract_address: string;
   logo_url: string;
   quote_rate: number;
+  native_token: boolean 
   // add any other properties that you know will be in the response
+}
+
+interface hardCodedAssets {
+  [key: string]: any
+}
+
+interface nativeAddresses {
+  symbol: string;
+  address: string;
+  chain_id: number;
 }
 
 export default function useFetchTokenData(address: string | undefined) {
@@ -48,6 +60,7 @@ export default function useFetchTokenData(address: string | undefined) {
         });
       });
 
+
       // fetch token Prices here for all chains.
       const supportedChains = mainnetChains.map((chain) => {
         if (chainIdToChainName(chain.chain_id)) {
@@ -74,29 +87,63 @@ export default function useFetchTokenData(address: string | undefined) {
             .then((resp) => resp.json())
             .then(({ data }) => {
               if (data) {
+                const temp : hardCodedAssets = hardCodedAssets
                 data.items.forEach((token: Token) => {
-                  if (token.balance !== "0")
-                    assetWithBalance.push({
-                      symbol: token.contract_ticker_symbol,
-                      chain_id: data.chain_id,
-                      decimals: token.contract_decimals,
-                      contract_address: token.contract_address,
-                      image: tokenSymbolMap.get(token.contract_ticker_symbol)
-                        ? tokenSymbolMap.get(token.contract_ticker_symbol)
-                        : token.logo_url,
-                      chain_logo: chainMap.get(data.chain_id),
-                      balance:
-                        parseFloat(
+                  if(token.balance === "0"){
+                    return
+                  }
+                  if(!token.native_token) {
+                    if(temp[token.contract_ticker_symbol]){
+                      assetWithBalance.push({
+                        symbol: token.contract_ticker_symbol,
+                        chain_id: data.chain_id,
+                        decimals: token.contract_decimals,
+                        contract_address: token.contract_address,
+                        image: tokenSymbolMap.get(token.contract_ticker_symbol)
+                          ? tokenSymbolMap.get(token.contract_ticker_symbol)
+                          : token.logo_url,
+                        chain_logo: chainMap.get(data.chain_id),
+                        balance:
+                          parseFloat(
+                            ethers.utils
+                              .formatUnits(token.balance, token.contract_decimals)
+                              .toString(),
+                          ) * token.quote_rate,
+                        tokenBalance: parseFloat(
                           ethers.utils
                             .formatUnits(token.balance, token.contract_decimals)
                             .toString(),
-                        ) * token.quote_rate,
-                      tokenBalance: parseFloat(
-                        ethers.utils
-                          .formatUnits(token.balance, token.contract_decimals)
-                          .toString(),
-                      ),
-                    });
+                        ),
+                      });
+                    }
+                  }else{
+                    temp.native_token.contract_address.forEach((ele: nativeAddresses ) => {
+                      if(ele.symbol === token.contract_ticker_symbol && ele.address === token.contract_address && chainIdToChainName(ele.chain_id) === supportedChains[i]){
+                        
+                        assetWithBalance.push({
+                          symbol: token.contract_ticker_symbol,
+                          chain_id: data.chain_id,
+                          decimals: token.contract_decimals,
+                          contract_address: token.contract_address,
+                          image: tokenSymbolMap.get(token.contract_ticker_symbol)
+                            ? tokenSymbolMap.get(token.contract_ticker_symbol)
+                            : token.logo_url,
+                          chain_logo: chainMap.get(data.chain_id),
+                          balance:
+                            parseFloat(
+                              ethers.utils
+                                .formatUnits(token.balance, token.contract_decimals)
+                                .toString(),
+                            ) * token.quote_rate,
+                          tokenBalance: parseFloat(
+                            ethers.utils
+                              .formatUnits(token.balance, token.contract_decimals)
+                              .toString(),
+                          ),
+                        });
+                      }
+                    })
+                  }
                 });
               }
             });
@@ -112,11 +159,15 @@ export default function useFetchTokenData(address: string | undefined) {
             return 1;
           }
         }
-
         return 0;
       });
 
-      setAssets([...assetWithBalance.slice(0, 5), ...assets, ...newAssets]);
+      if(assetWithBalance.length >= 5){
+        setAssets([...assetWithBalance.slice(0, 5), ...assets, ...newAssets]);
+      }else{
+        setAssets([...assetWithBalance, ...assets, ...newAssets]);
+      }
+
       setFilteredAsset([
         ...assetWithBalance.slice(0, 5),
         ...assets,

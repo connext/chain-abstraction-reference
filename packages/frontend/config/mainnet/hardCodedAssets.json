@@ -1,0 +1,44 @@
+{
+    "native_token": {
+        "native_token": true,
+        "contract_address": [
+            {
+                "symbol": "ETH",
+                "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "chain_id": 1
+            },
+            {
+                "symbol": "MATIC",
+                "address": "0x0000000000000000000000000000000000001010",
+                "chain_id": 137
+            },
+            {
+                "symbol": "BNB",
+                "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "chain_id": 56
+            },
+            {
+                "symbol": "ETH",
+                "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "chain_id": 42161
+            },
+            {
+                "symbol": "ETH",
+                "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "chain_id": 10
+            }
+        ]
+    },
+    "USDC": {
+        "native_token": false
+    },
+    "USDT": {
+        "native_token": false
+    },
+    "WETH": {
+        "native_token": false
+    },
+    "DAI": {
+        "native_token": false
+    }
+}
