@@ -48,8 +48,6 @@ export default function useFetchTokenData(address: string | undefined) {
         });
       });
 
-      console.log("before calling");
-
       // fetch token Prices here for all chains.
       const supportedChains = mainnetChains.map((chain) => {
         if (chainIdToChainName(chain.chain_id)) {

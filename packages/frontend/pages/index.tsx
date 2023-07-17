@@ -13,7 +13,7 @@ import {
   useNetwork,
   WalletClient,
 } from "wagmi";
-import { parseAbiItem, Hex, Log, WatchContractEventReturnType } from "viem";
+import { Hex, WatchContractEventReturnType, Abi } from "viem";
 
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
@@ -39,14 +39,16 @@ import POLYGON_LOGO from "../assets/POLYGON.png";
 import Modal from "../components/modal";
 import { AssetType } from "../components/Asset";
 import useFetchTokenData from "../hooks/useFetchTokenData";
+import useFetchContractEvents from "../hooks/useFetchEvents";
 
-// const ARBITRUM_USDT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
-const POLYGON_CHAIN_ID = 137;
-const POLYGON_DOMAIN_ID = 1886350457;
-const POLYGON_WETH = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
-const POLYGON_TARGET_CONTRACT = "0xb5Ed372Bb3413D5A3d384F73e44EB85618f41455";
-const MAX_NUM_GREETINGS = 10;
-const BLOCKS_LOOKBACK = BigInt(100000);
+import {
+  POLYGON_CHAIN_ID,
+  POLYGON_DOMAIN_ID,
+  POLYGON_WETH,
+  POLYGON_TARGET_CONTRACT,
+  MAX_NUM_GREETINGS,
+  MAX_BLOCKS_LOOKBACK,
+} from "../constants/constants";
 
 const HomePage: NextPage = () => {
   const initialRender = useRef(true);
@@ -71,7 +73,6 @@ const HomePage: NextPage = () => {
   const [greeting, setGreeting] = useState<string>("");
   const [pendingGreeting, setPendingGreeting] = useState<string | null>(null);
   const [greetingList, setGreetingList] = useState<string[]>([]);
-  const [isLoadingGreetings, setIsLoadingGreetings] = useState<boolean>(false);
   const [triggerRead, setTriggerRead] = useState(false);
 
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -89,6 +90,31 @@ const HomePage: NextPage = () => {
   });
 
   const [sendEnabled, setSendEnabled] = useState<boolean>(false);
+  const [destinationDomainCurrentBlock, setDestinationDomainCurrentBlock] =
+    useState<bigint | null>(BigInt(0));
+
+  // Fetches the destination domain's current block once on render
+  useEffect(() => {
+    const getDestinationDomainCurrentBlock = async () => {
+      const blockNumber = await polygonClient.getBlockNumber();
+      setDestinationDomainCurrentBlock(blockNumber);
+    };
+
+    getDestinationDomainCurrentBlock();
+  }, []);
+
+  const { isLoadingEvents: isLoadingGreetings } = useFetchContractEvents({
+    publicClient: polygonClient,
+    contractAddress: POLYGON_TARGET_CONTRACT,
+    eventSignature: "event GreetingUpdated(string greeting)",
+    eventName: "GreetingUpdated",
+    abi: GreeterABI as Abi,
+    maxBlocksPerCall: 3000,
+    fromBlock: destinationDomainCurrentBlock
+      ? destinationDomainCurrentBlock - BigInt(MAX_BLOCKS_LOOKBACK)
+      : null,
+    setEvents: setGreetingList,
+  });
 
   // Initializes connext service
   useEffect(() => {
@@ -177,68 +203,6 @@ const HomePage: NextPage = () => {
     }
   }, [selectedAsset]);
 
-  // Fetches greetings from events
-  useEffect(() => {
-    const getTargetContractLogs = async () => {
-      setIsLoadingGreetings(true);
-
-      const maxBlocksPerCall = BigInt(3000);
-      const currentBlock = await polygonClient.getBlockNumber();
-
-      let fromBlock = currentBlock - BLOCKS_LOOKBACK;
-      if (fromBlock < BigInt(0)) {
-        fromBlock = BigInt(0);
-      }
-      let toBlock = fromBlock + maxBlocksPerCall;
-      if (toBlock > currentBlock) {
-        toBlock = currentBlock;
-      }
-
-      let allGreetings: string[] = [];
-
-      const greetingUpdatedEvent = parseAbiItem(
-        "event GreetingUpdated(string greeting)",
-      );
-
-      // Get events from earliest to latest
-      while (fromBlock <= toBlock && fromBlock <= currentBlock) {
-        const logs = await polygonClient.getLogs({
-          address: POLYGON_TARGET_CONTRACT,
-          event: greetingUpdatedEvent,
-          fromBlock: fromBlock,
-          toBlock: toBlock,
-        });
-
-        if (logs && logs.length > 0) {
-          console.log(logs);
-          const greetings = logs
-            .map(
-              (log: Log<bigint, number, typeof greetingUpdatedEvent>) =>
-                log.args.greeting,
-            )
-            .filter((greeting): greeting is string => greeting !== undefined);
-
-          allGreetings = [...allGreetings, ...greetings];
-        }
-
-        fromBlock = toBlock + BigInt(1);
-        toBlock = fromBlock + maxBlocksPerCall;
-        if (toBlock > currentBlock) {
-          toBlock = currentBlock;
-        }
-      }
-
-      if (allGreetings.length > MAX_NUM_GREETINGS) {
-        allGreetings = allGreetings.slice(-MAX_NUM_GREETINGS);
-      }
-
-      setGreetingList(allGreetings.reverse());
-      setIsLoadingGreetings(false);
-    };
-
-    getTargetContractLogs();
-  }, []);
-
   // Queries the contract's current greeting
   useEffect(() => {
     const readTargetContract = async () => {
@@ -256,6 +220,12 @@ const HomePage: NextPage = () => {
         ]);
         setSuccess(true);
         toast.success("The greeting was updated!");
+      } else if (greetingList.length == 0) {
+        // Grab current greeting regardless of lookback
+        setGreetingList((prevGreetingList) => [
+          data as string,
+          ...prevGreetingList,
+        ]);
       }
     };
 
@@ -265,7 +235,7 @@ const HomePage: NextPage = () => {
     } else {
       readTargetContract();
     }
-  }, [triggerRead]);
+  }, [destinationDomainCurrentBlock, triggerRead]);
 
   // Sets up listener for GreetingUpdated event
   useEffect(() => {
