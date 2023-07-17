@@ -46,7 +46,6 @@ import {
   POLYGON_DOMAIN_ID,
   POLYGON_WETH,
   POLYGON_TARGET_CONTRACT,
-  MAX_NUM_GREETINGS,
   MAX_BLOCKS_LOOKBACK,
 } from "../constants/constants";
 
