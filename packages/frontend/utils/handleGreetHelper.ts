@@ -5,7 +5,7 @@ import {
   SwapAndXCallParams,
 } from "@connext/chain-abstraction/dist/types";
 import { Hex, hexToBigInt } from "viem";
-import { PublicClient, erc20ABI } from "wagmi";
+import { PublicClient, WalletClient, erc20ABI } from "wagmi";
 import { domainToChainID } from "./utils";
 
 const ARBITRUM_PROTOCOL_TOKEN_ADDRESS =
@@ -24,7 +24,7 @@ export const handleGreetHelper = async (
   relayerFee: string,
   address: string,
   greeting: string,
-  walletClient: any,
+  walletClient: WalletClient,
   publicClient: PublicClient,
 ) => {
   if (connextService && relayerFee) {
@@ -37,14 +37,14 @@ export const handleGreetHelper = async (
       const destinationUSDC =
         connextService.getNativeUSDCAddress(destinationChain);
       console.log(
-        `destinationDomain: ${destinationDomain}, destinationUSDC: ${destinationUSDC}`
+        `destinationDomain: ${destinationDomain}, destinationUSDC: ${destinationUSDC}`,
       );
 
       const poolFee = await connextService.getPoolFeeForUniV3(
         destinationDomain,
         destinationUSDC, // destination USDC
         destinationDesiredAsset, // destination Token
-        destinationRpc
+        destinationRpc,
       );
 
       console.log(`poolFee: ${poolFee}`);
@@ -62,12 +62,12 @@ export const handleGreetHelper = async (
 
       const forwardCallData = utils.defaultAbiCoder.encode(
         ["address", "string"],
-        [POLYGON_WETH, greeting]
+        [POLYGON_WETH, greeting],
       );
       const xCallData = await connextService.getXCallCallDataHelper(
         destinationDomain,
         forwardCallData,
-        params
+        params,
       );
       console.log("originTransactingAsset: ", originTransactingAsset);
       const swapAndXCallParams: SwapAndXCallParams = {
@@ -87,7 +87,7 @@ export const handleGreetHelper = async (
 
       const txRequest = await connextService.prepareSwapAndXCallHelper(
         swapAndXCallParams,
-        address as Hex
+        address as Hex,
       );
       console.log("txRequest: ", txRequest);
 
@@ -99,30 +99,38 @@ export const handleGreetHelper = async (
         const value = hexToBigInt(txRequest.value as Hex);
 
         // Approve to SwapAndXCall contract if needed
-        const swapAndXCallContract = connextService.getSwapAndXcallAddressHelper(originDomain) as Hex;
+        const swapAndXCallContract =
+          connextService.getSwapAndXcallAddressHelper(originDomain) as Hex;
         const allowance = await publicClient.readContract({
           address: originTransactingAsset as Hex,
           abi: erc20ABI,
           functionName: "allowance",
           args: [from, swapAndXCallContract],
-        })
+        });
 
         if (allowance < BigInt(amountIn.toString())) {
-          const { request: approveSwapAndXCallRequest } = await publicClient.simulateContract({
-            address: originTransactingAsset as Hex,
-            abi: erc20ABI,
-            functionName: "approve",
-            args: [swapAndXCallContract, BigInt(amountIn.toString())],
-            account: from,
-          })
-          
-          const approveSwapAndXCallTx = await walletClient.writeContract(approveSwapAndXCallRequest);
+          const { request: approveSwapAndXCallRequest } =
+            await publicClient.simulateContract({
+              address: originTransactingAsset as Hex,
+              abi: erc20ABI,
+              functionName: "approve",
+              args: [swapAndXCallContract, BigInt(amountIn.toString())],
+              account: from,
+            });
+
+          const approveSwapAndXCallTx = await walletClient.writeContract(
+            approveSwapAndXCallRequest,
+          );
           console.log("approveSwapAndXCallTx: ", approveSwapAndXCallTx);
 
-          const approveSwapAndXCallReceipt = await publicClient.waitForTransactionReceipt( 
-            { hash: approveSwapAndXCallTx }
-          )
-          console.log("approveSwapAndXCallReceipt: ", approveSwapAndXCallReceipt);
+          const approveSwapAndXCallReceipt =
+            await publicClient.waitForTransactionReceipt({
+              hash: approveSwapAndXCallTx,
+            });
+          console.log(
+            "approveSwapAndXCallReceipt: ",
+            approveSwapAndXCallReceipt,
+          );
         } else {
           console.log("Allowance sufficient");
         }

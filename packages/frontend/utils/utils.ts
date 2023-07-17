@@ -42,7 +42,6 @@ export const chainToDomainId = (chainId: number) => {
   return domainToChain[chainId];
 };
 
-
 // Specific to covalent API
 export const chainIdToChainName = (chainId: number) => {
   const chainIdToChainName: DomainID = {
@@ -54,4 +53,4 @@ export const chainIdToChainName = (chainId: number) => {
     100: "gnosis-mainnet",
   };
   return chainIdToChainName[chainId];
-}
+};

@@ -11,8 +11,9 @@ import {
   usePublicClient,
   useBalance,
   useNetwork,
+  WalletClient,
 } from "wagmi";
-import { parseAbiItem, Hex } from "viem";
+import { Hex, WatchContractEventReturnType, Abi } from "viem";
 
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
@@ -38,16 +39,18 @@ import POLYGON_LOGO from "../assets/POLYGON.png";
 import Modal from "../components/modal";
 import { AssetType } from "../components/Asset";
 import useFetchTokenData from "../hooks/useFetchTokenData";
+import useFetchContractEvents from "../hooks/useFetchEvents";
 
-// const ARBITRUM_USDT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
-const POLYGON_CHAIN_ID = 137;
-const POLYGON_DOMAIN_ID = 1886350457;
-const POLYGON_WETH = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
-const POLYGON_TARGET_CONTRACT = "0xb5Ed372Bb3413D5A3d384F73e44EB85618f41455";
-const MAX_NUM_GREETINGS = 10;
-const BLOCKS_LOOKBACK = BigInt(100000);
+import {
+  POLYGON_CHAIN_ID,
+  POLYGON_DOMAIN_ID,
+  POLYGON_WETH,
+  POLYGON_TARGET_CONTRACT,
+  MAX_NUM_GREETINGS,
+  MAX_BLOCKS_LOOKBACK,
+} from "../constants/constants";
 
-const HomePage: NextPage = (pageProps) => {
+const HomePage: NextPage = () => {
   const initialRender = useRef(true);
   const { width, height } = useWindowSize();
 
@@ -62,14 +65,14 @@ const HomePage: NextPage = (pageProps) => {
   const [connextService, setConnextService] = useState<
     ConnextService | undefined
   >(undefined);
-  const {assets, filteredAsset, setFilteredAsset} = useFetchTokenData(address);
+  const { assets, filteredAsset, setFilteredAsset } =
+    useFetchTokenData(address);
 
   const [amountIn, setAmountIn] = useState<BigNumberish>("0");
 
   const [greeting, setGreeting] = useState<string>("");
   const [pendingGreeting, setPendingGreeting] = useState<string | null>(null);
   const [greetingList, setGreetingList] = useState<string[]>([]);
-  const [isLoadingGreetings, setIsLoadingGreetings] = useState<boolean>(false);
   const [triggerRead, setTriggerRead] = useState(false);
 
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -87,6 +90,31 @@ const HomePage: NextPage = (pageProps) => {
   });
 
   const [sendEnabled, setSendEnabled] = useState<boolean>(false);
+  const [destinationDomainCurrentBlock, setDestinationDomainCurrentBlock] =
+    useState<bigint | null>(BigInt(0));
+
+  // Fetches the destination domain's current block once on render
+  useEffect(() => {
+    const getDestinationDomainCurrentBlock = async () => {
+      const blockNumber = await polygonClient.getBlockNumber();
+      setDestinationDomainCurrentBlock(blockNumber);
+    };
+
+    getDestinationDomainCurrentBlock();
+  }, []);
+
+  const { isLoadingEvents: isLoadingGreetings } = useFetchContractEvents({
+    publicClient: polygonClient,
+    contractAddress: POLYGON_TARGET_CONTRACT,
+    eventSignature: "event GreetingUpdated(string greeting)",
+    eventName: "GreetingUpdated",
+    abi: GreeterABI as Abi,
+    maxBlocksPerCall: 3000,
+    fromBlock: destinationDomainCurrentBlock
+      ? destinationDomainCurrentBlock - BigInt(MAX_BLOCKS_LOOKBACK)
+      : null,
+    setEvents: setGreetingList,
+  });
 
   // Initializes connext service
   useEffect(() => {
@@ -122,9 +150,9 @@ const HomePage: NextPage = (pageProps) => {
   // Enable send button if all fields are sane
   useEffect(() => {
     if (
-      selectedAsset?.chain_id === chain?.id && 
-      amountIn.toString() !== "0" && 
-      relayerFee && 
+      selectedAsset?.chain_id === chain?.id &&
+      amountIn.toString() !== "0" &&
+      relayerFee &&
       greeting.length
     ) {
       setSendEnabled(true);
@@ -175,57 +203,6 @@ const HomePage: NextPage = (pageProps) => {
     }
   }, [selectedAsset]);
 
-  // Fetches greetings from events
-  useEffect(() => {
-    const getTargetContractLogs = async () => {
-      setIsLoadingGreetings(true);
-
-      const maxBlocksPerCall = BigInt(3000);
-      const currentBlock = await polygonClient.getBlockNumber();
-
-      let fromBlock = currentBlock - BLOCKS_LOOKBACK;
-      if (fromBlock < BigInt(0)) {
-        fromBlock = BigInt(0);
-      }
-      let toBlock = fromBlock + maxBlocksPerCall;
-      if (toBlock > currentBlock) {
-        toBlock = currentBlock;
-      }
-
-      let allGreetings: string[] = [];
-
-      // Get events from earliest to latest
-      while (fromBlock <= toBlock && fromBlock <= currentBlock) {
-        const logs = await polygonClient.getLogs({
-          address: POLYGON_TARGET_CONTRACT,
-          event: parseAbiItem("event GreetingUpdated(string greeting)"),
-          fromBlock: fromBlock,
-          toBlock: toBlock,
-        });
-
-        if (logs && logs.length > 0) {
-          const greetings = logs.map((log: any) => log.args.greeting);
-          allGreetings = [...allGreetings, ...greetings];
-        }
-
-        fromBlock = toBlock + BigInt(1);
-        toBlock = fromBlock + maxBlocksPerCall;
-        if (toBlock > currentBlock) {
-          toBlock = currentBlock;
-        }
-      }
-
-      if (allGreetings.length > MAX_NUM_GREETINGS) {
-        allGreetings = allGreetings.slice(-MAX_NUM_GREETINGS);
-      }
-
-      setGreetingList(allGreetings.reverse());
-      setIsLoadingGreetings(false);
-    };
-
-    getTargetContractLogs();
-  }, []);
-
   // Queries the contract's current greeting
   useEffect(() => {
     const readTargetContract = async () => {
@@ -243,6 +220,12 @@ const HomePage: NextPage = (pageProps) => {
         ]);
         setSuccess(true);
         toast.success("The greeting was updated!");
+      } else if (greetingList.length == 0) {
+        // Grab current greeting regardless of lookback
+        setGreetingList((prevGreetingList) => [
+          data as string,
+          ...prevGreetingList,
+        ]);
       }
     };
 
@@ -252,17 +235,17 @@ const HomePage: NextPage = (pageProps) => {
     } else {
       readTargetContract();
     }
-  }, [triggerRead]);
+  }, [destinationDomainCurrentBlock, triggerRead]);
 
   // Sets up listener for GreetingUpdated event
   useEffect(() => {
-    let unwatch: any;
+    let unwatch: WatchContractEventReturnType;
     const watchTargetContract = async () => {
       unwatch = polygonClient.watchContractEvent({
         address: POLYGON_TARGET_CONTRACT,
         abi: GreeterABI,
         eventName: "GreetingUpdated",
-        onLogs: (logs) => {
+        onLogs: () => {
           setTriggerRead((prevState) => !prevState);
         },
       });
@@ -291,7 +274,7 @@ const HomePage: NextPage = (pageProps) => {
           destinationDesiredAsset,
           originRpc,
           destinationRpc,
-          amountIn
+          amountIn,
         );
       }
     }, 1000);
@@ -302,7 +285,7 @@ const HomePage: NextPage = (pageProps) => {
     setIsModalOpen(open);
   };
 
-  let toastNotifier: Id | null = null;
+  const toastNotifier: Id | null = null;
 
   const handleFees = async (
     originDomain: string,
@@ -311,14 +294,14 @@ const HomePage: NextPage = (pageProps) => {
     destinationDesiredAsset: string,
     originRpc: string,
     destinationRpc: string,
-    amountIn: BigNumberish
+    amountIn: BigNumberish,
   ) => {
     try {
       if (connextService && amountIn.toString().length > 0) {
-        let toastNotifier = toast.loading("Calculating fees...");
+        const toastNotifier = toast.loading("Calculating fees...");
         const fee = await connextService.estimateRelayerFee(
           originDomain,
-          destinationDomain
+          destinationDomain,
         );
         const quoteAmount =
           await connextService.getEstimateAmountReceivedHelper({
@@ -370,7 +353,7 @@ const HomePage: NextPage = (pageProps) => {
     destinationDesiredAsset: string,
     originRpc: string,
     destinationRpc: string,
-    amountIn: BigNumberish
+    amountIn: BigNumberish,
   ) => {
     if (!relayerFee || !connextService || !address) {
       toast.info("Services not initialized.", { autoClose: 1000 });
@@ -388,8 +371,8 @@ const HomePage: NextPage = (pageProps) => {
       relayerFee,
       address as `0x${string}`,
       greeting,
-      walletClient,
-      publicClient
+      walletClient as WalletClient,
+      publicClient,
     );
 
     if (hash) {
@@ -492,7 +475,8 @@ const HomePage: NextPage = (pageProps) => {
                     : chain?.id !== 0
                     ? "(select a token)"
                     : "Wallet not connected"}{" "}
-                  {(selectedAsset?.symbol === balanceData?.symbol) && balanceData?.symbol}
+                  {selectedAsset?.symbol === balanceData?.symbol &&
+                    balanceData?.symbol}
                 </p>
               </div>
               <div className="border-2 box-border px-2 border-[#3E3E3E] rounded-sm my-3 flex justify-between mb-3">
@@ -504,7 +488,7 @@ const HomePage: NextPage = (pageProps) => {
                     <div className="relative">
                       <Image
                         loader={myLoader}
-                        src={selectedAsset.image}
+                        src={selectedAsset.image as string}
                         alt={selectedAsset.symbol}
                         width={25}
                         height={25}
@@ -527,7 +511,7 @@ const HomePage: NextPage = (pageProps) => {
                           <p className="text-xs">
                             {
                               chainIdToChainName(selectedAsset.chain_id).split(
-                                "-"
+                                "-",
                               )[0]
                             }
                           </p>
@@ -620,7 +604,7 @@ const HomePage: NextPage = (pageProps) => {
                       POLYGON_WETH,
                       originRpc,
                       destinationRpc,
-                      amountIn
+                      amountIn,
                     );
                   } else {
                     console.log("Connext Service not inited");

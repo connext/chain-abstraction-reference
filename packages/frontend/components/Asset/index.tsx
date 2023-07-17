@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import { chainIdToChainName } from "../../utils/utils";
 
@@ -7,41 +7,30 @@ export type AssetType = {
   chain_id: number;
   decimals: number;
   contract_address: string;
-  image: string;
-  chain_logo: string | undefined;
   balance: number | null;
   tokenBalance: number | null;
-}
+  chain_logo?: string;
+  image?: string;
+};
 
 const Asset = ({
   chainFilter,
-  address,
   search,
   handleSelectedAssetHelper,
   handleModalHelper,
   assets,
   filteredAsset,
-  setFilteredAsset
+  setFilteredAsset,
 }: {
   chainFilter: number | null;
   address: `0x${string}` | undefined;
   search: string;
-  handleSelectedAssetHelper: (asset: {
-    symbol: string;
-    chain_id: number;
-    decimals: number;
-    contract_address: string;
-    image: string;
-    chain_logo: string | undefined;
-    balance: number | null;
-    tokenBalance: number | null;
-  }) => void;
+  handleSelectedAssetHelper: (asset: AssetType) => void;
   handleModalHelper: (open: boolean) => void;
   assets: AssetType[];
   filteredAsset: AssetType[];
   setFilteredAsset: React.Dispatch<React.SetStateAction<AssetType[]>>;
 }) => {
-
   useEffect(() => {
     const updatedList = [...assets];
     const filteredList = updatedList.filter((item) => {
@@ -92,7 +81,7 @@ const Asset = ({
               <div className="flex relative">
                 <Image
                   loader={myLoader}
-                  src={token.image}
+                  src={token.image as string}
                   width={30}
                   height={30}
                   className="rounded-full mr-2"
