@@ -32,12 +32,16 @@ function useFetchContractEvents({
 
   useEffect(() => {
     const getContractLogs = async () => {
+      if (!fromBlock) {
+        return;
+      }
+
       console.log(`Fetching ${eventName} events...`);
       setIsLoadingEvents(true);
 
       const currentBlock = await publicClient.getBlockNumber();
       const _toBlock = toBlock ?? BigInt(currentBlock);
-      let endBlock = BigInt(fromBlock) + BigInt(maxBlocksPerCall);
+      let endBlock = BigInt(fromBlock as bigint) + BigInt(maxBlocksPerCall);
       let allEvents: string[] = [];
       const event = parseAbiItem(eventSignature);
 
@@ -77,9 +81,7 @@ function useFetchContractEvents({
       setIsLoadingEvents(false);
     };
 
-    if (fromBlock) {
-      getContractLogs();
-    }
+    getContractLogs();
   }, [fromBlock]);
 
   return { isLoadingEvents };
