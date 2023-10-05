@@ -572,7 +572,7 @@ const HomePage: NextPage = () => {
                   </p>
                   <p className="text-white text-xs text-[#A5A5A5]">
                     {utils
-                      .formatUnits(quotedAmountOut, 18)
+                      .formatUnits(BigInt(quotedAmountOut), 18)
                       .toString()
                       .slice(0, 8)}{" "}
                     WETH

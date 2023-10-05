@@ -10,6 +10,9 @@ import { domainToChainID } from "./utils";
 
 const ARBITRUM_PROTOCOL_TOKEN_ADDRESS =
   "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+
+const MATIC_ADDRESS = "0x0000000000000000000000000000000000001010";
+
 const POLYGON_WETH = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
 const POLYGON_ADAPTER_CONTRACT = "0xbb54825eB3623daAB431061542d62Fd09Cc20087";
 
@@ -96,43 +99,53 @@ export const handleGreetHelper = async (
         const data = txRequest.data as Hex;
         const from = txRequest.from as Hex;
         const to = txRequest.to as Hex;
-        const value = hexToBigInt(txRequest.value as Hex);
+        const value = hexToBigInt(txRequest.value.hex as Hex);
 
         // Approve to SwapAndXCall contract if needed
         const swapAndXCallContract =
           connextService.getSwapAndXcallAddressHelper(originDomain) as Hex;
-        const allowance = await publicClient.readContract({
-          address: originTransactingAsset as Hex,
-          abi: erc20ABI,
-          functionName: "allowance",
-          args: [from, swapAndXCallContract],
-        });
+        let isNativeToken = false;
+        if (
+          originTransactingAsset === constants.AddressZero ||
+          originTransactingAsset === ARBITRUM_PROTOCOL_TOKEN_ADDRESS ||
+          originTransactingAsset === MATIC_ADDRESS
+        ) {
+          isNativeToken = true;
+        }
+        if (!isNativeToken) {
+          const allowance = await publicClient.readContract({
+            address: originTransactingAsset as Hex,
+            abi: erc20ABI,
+            functionName: "allowance",
+            args: [from, swapAndXCallContract],
+          });
 
-        if (allowance < BigInt(amountIn.toString())) {
-          const { request: approveSwapAndXCallRequest } =
-            await publicClient.simulateContract({
-              address: originTransactingAsset as Hex,
-              abi: erc20ABI,
-              functionName: "approve",
-              args: [swapAndXCallContract, BigInt(amountIn.toString())],
-              account: from,
-            });
+          if (allowance < BigInt(amountIn.toString())) {
+            const { request: approveSwapAndXCallRequest } =
+              await publicClient.simulateContract({
+                address: originTransactingAsset as Hex,
+                abi: erc20ABI,
+                functionName: "approve",
+                args: [swapAndXCallContract, BigInt(amountIn.toString())],
+                account: from,
+              });
 
-          const approveSwapAndXCallTx = await walletClient.writeContract(
-            approveSwapAndXCallRequest,
-          );
-          console.log("approveSwapAndXCallTx: ", approveSwapAndXCallTx);
+            const approveSwapAndXCallTx = await walletClient.writeContract(
+              approveSwapAndXCallRequest,
+            );
+            console.log("approveSwapAndXCallTx: ", approveSwapAndXCallTx);
 
-          const approveSwapAndXCallReceipt =
-            await publicClient.waitForTransactionReceipt({
-              hash: approveSwapAndXCallTx,
-            });
-          console.log(
-            "approveSwapAndXCallReceipt: ",
-            approveSwapAndXCallReceipt,
-          );
-        } else {
-          console.log("Allowance sufficient");
+            const approveSwapAndXCallReceipt =
+              await publicClient.waitForTransactionReceipt({
+                hash: approveSwapAndXCallTx,
+              });
+            console.log(
+              "approveSwapAndXCallReceipt: ",
+              approveSwapAndXCallReceipt,
+            );
+          } else {
+            console.log("Allowance sufficient");
+          }
         }
 
         // Estimate gas for swapAndXCall
