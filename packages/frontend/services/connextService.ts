@@ -87,7 +87,7 @@ export default class ConnextService {
     swapAndXCallParams: SwapAndXCallParams,
     signerAddress: string,
   ) {
-    return prepareSwapAndXCall(swapAndXCallParams, signerAddress);
+    return prepareSwapAndXCall(swapAndXCallParams, signerAddress, {apiKey:"f5GTHProMkymbSTfaeRSJQXZxrpngQwK"});
   }
 
   async getSupportedAssetsForDomain(chainId: number) {
@@ -174,6 +174,9 @@ export default class ConnextService {
         signerAddress,
         originDecimals,
         destinationDecimals,
+        config:{
+          apiKey:"f5GTHProMkymbSTfaeRSJQXZxrpngQwK"
+        }
       });
 
       return estimateAmount;
