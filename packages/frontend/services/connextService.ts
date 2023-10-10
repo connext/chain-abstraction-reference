@@ -2,10 +2,8 @@ import {
   getPoolFeeForUniV3,
   getSwapAndXcallAddress,
   getXCallCallData,
-  prepareSwapAndXCall,
   getSupportedAssetsForDomain,
   getPriceImpactForSwaps,
-  getEstimateAmountReceived,
 } from "@connext/chain-abstraction";
 import {
   DestinationCallDataParams,
@@ -14,7 +12,8 @@ import {
   EstimateQuoteAmountArgs,
 } from "@connext/chain-abstraction/dist/types";
 import { SdkConfig, create } from "@connext/sdk";
-import { BigNumber, BigNumberish } from "ethers";
+import axios from "axios";
+import { BigNumberish } from "ethers";
 
 interface DomainID {
   [key: number]: string;
@@ -87,7 +86,13 @@ export default class ConnextService {
     swapAndXCallParams: SwapAndXCallParams,
     signerAddress: string,
   ) {
-    return prepareSwapAndXCall(swapAndXCallParams, signerAddress);
+    // return prepareSwapAndXCall(swapAndXCallParams, signerAddress, {apiKey:"f5GTHProMkymbSTfaeRSJQXZxrpngQwK"});
+
+    const res = await axios.post("/api/prepareswapandxcall", {
+      swapAndXCallParams,
+      signerAddress,
+    });
+    return res.data;
   }
 
   async getSupportedAssetsForDomain(chainId: number) {
@@ -97,27 +102,6 @@ export default class ConnextService {
   async getSupportedChainsByConnext() {
     const { sdkBase } = await create(this.sdkConfig);
     return sdkBase.getSupported();
-  }
-
-  async getEstimateAmountReceived(
-    chainFrom: number,
-    chainTo: number,
-    originToken: string,
-    amount: BigNumber,
-  ) {
-    const supported = await this.getSupportedChainsByConnext();
-
-    const originDomain = supported[chainFrom].domainId;
-    const destinationDomain = supported[chainTo].domainId;
-
-    const { sdkBase } = await create(this.sdkConfig);
-    const estimateReceived = await sdkBase.calculateAmountReceived(
-      originDomain,
-      destinationDomain,
-      originToken,
-      amount,
-    );
-    return estimateReceived;
   }
 
   async approveIfNeeded(
@@ -150,33 +134,8 @@ export default class ConnextService {
 
   async getEstimateAmountReceivedHelper(_args: EstimateQuoteAmountArgs) {
     try {
-      const {
-        originDomain,
-        destinationDomain,
-        amountIn,
-        destinationRpc,
-        originRpc,
-        fromAsset,
-        toAsset,
-        signerAddress,
-        originDecimals,
-        destinationDecimals,
-      } = _args;
-
-      const estimateAmount = await getEstimateAmountReceived({
-        originDomain,
-        destinationDomain,
-        fromAsset,
-        toAsset,
-        originRpc,
-        destinationRpc,
-        amountIn,
-        signerAddress,
-        originDecimals,
-        destinationDecimals,
-      });
-
-      return estimateAmount;
+      const res = await axios.get("/api/getestimateamount", { params: _args });
+      return res.data;
     } catch (err) {
       console.log(err);
     }

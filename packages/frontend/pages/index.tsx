@@ -13,7 +13,14 @@ import {
   useNetwork,
   WalletClient,
 } from "wagmi";
-import { Hex, WatchContractEventReturnType, Abi } from "viem";
+import {
+  Hex,
+  WatchContractEventReturnType,
+  Abi,
+  createPublicClient,
+  http,
+} from "viem";
+import { polygon } from "viem/chains";
 
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
@@ -42,11 +49,9 @@ import useFetchTokenData from "../hooks/useFetchTokenData";
 import useFetchContractEvents from "../hooks/useFetchEvents";
 
 import {
-  POLYGON_CHAIN_ID,
   POLYGON_DOMAIN_ID,
   POLYGON_WETH,
   POLYGON_TARGET_CONTRACT,
-  MAX_BLOCKS_LOOKBACK,
 } from "../constants/constants";
 
 const HomePage: NextPage = () => {
@@ -55,7 +60,14 @@ const HomePage: NextPage = () => {
 
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const polygonClient = usePublicClient({ chainId: POLYGON_CHAIN_ID });
+  // const polygonClient = usePublicClient({ chainId: POLYGON_CHAIN_ID });
+  const polygonClient = createPublicClient({
+    chain: polygon,
+    transport: http(
+      "https://polygon-mainnet.g.alchemy.com/v2/9szz3Oqt_kKUT0OC8bD_LzDUO0rskcIW",
+    ),
+  });
+
   const publicClient = usePublicClient();
   const { chain } = useNetwork();
 
@@ -89,18 +101,6 @@ const HomePage: NextPage = () => {
   });
 
   const [sendEnabled, setSendEnabled] = useState<boolean>(false);
-  const [destinationDomainCurrentBlock, setDestinationDomainCurrentBlock] =
-    useState<bigint | null>(BigInt(0));
-
-  // Fetches the destination domain's current block once on render
-  useEffect(() => {
-    const getDestinationDomainCurrentBlock = async () => {
-      const blockNumber = await polygonClient.getBlockNumber();
-      setDestinationDomainCurrentBlock(blockNumber);
-    };
-
-    getDestinationDomainCurrentBlock();
-  }, []);
 
   const { isLoadingEvents: isLoadingGreetings } = useFetchContractEvents({
     publicClient: polygonClient,
@@ -108,10 +108,8 @@ const HomePage: NextPage = () => {
     eventSignature: "event GreetingUpdated(string greeting)",
     eventName: "GreetingUpdated",
     abi: GreeterABI as Abi,
-    maxBlocksPerCall: 3000,
-    fromBlock: destinationDomainCurrentBlock
-      ? destinationDomainCurrentBlock - BigInt(MAX_BLOCKS_LOOKBACK)
-      : null,
+    maxBlocksPerCall: 1000000,
+    fromBlock: BigInt(44743998),
     setEvents: setGreetingList,
   });
 
@@ -210,7 +208,6 @@ const HomePage: NextPage = () => {
         abi: GreeterABI,
         functionName: "greeting",
       });
-
       if (data === pendingGreeting) {
         setPendingGreeting(null);
         setGreetingList((prevGreetingList) => [
@@ -221,10 +218,8 @@ const HomePage: NextPage = () => {
         toast.success("The greeting was updated!");
       } else if (greetingList.length == 0) {
         // Grab current greeting regardless of lookback
-        setGreetingList((prevGreetingList) => [
-          data as string,
-          ...prevGreetingList,
-        ]);
+        const updatedList = [data as string, ...greetingList];
+        setGreetingList(updatedList);
       }
     };
 
@@ -234,7 +229,7 @@ const HomePage: NextPage = () => {
     } else {
       readTargetContract();
     }
-  }, [destinationDomainCurrentBlock, triggerRead]);
+  }, [triggerRead]);
 
   // Sets up listener for GreetingUpdated event
   useEffect(() => {
@@ -259,6 +254,11 @@ const HomePage: NextPage = () => {
 
   // Calculates fees on user input
   useEffect(() => {
+    if (
+      parseFloat(amountIn.toString()) === 0 ||
+      amountIn.toString().length === 0
+    )
+      return;
     const delayDebounceFn = setTimeout(() => {
       if (connextService && selectedAsset) {
         const originRpc = walletClient?.chain.rpcUrls.default.http[0] ?? "";
@@ -581,7 +581,7 @@ const HomePage: NextPage = () => {
                   </p>
                   <p className="text-white text-xs text-[#A5A5A5]">
                     {utils
-                      .formatUnits(quotedAmountOut, 18)
+                      .formatUnits(BigInt(quotedAmountOut), 18)
                       .toString()
                       .slice(0, 8)}{" "}
                     WETH

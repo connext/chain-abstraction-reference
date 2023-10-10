@@ -10,7 +10,7 @@ interface FetchEventsOptions {
   eventName: string;
   abi: Abi;
   maxBlocksPerCall: number;
-  fromBlock: bigint | null;
+  fromBlock: bigint;
   toBlock?: bigint;
   setEvents: (events: string[]) => void;
 }
@@ -41,17 +41,17 @@ function useFetchContractEvents({
 
       const currentBlock = await publicClient.getBlockNumber();
       const _toBlock = toBlock ?? BigInt(currentBlock);
-      let endBlock = BigInt(fromBlock as bigint) + BigInt(maxBlocksPerCall);
       let allEvents: string[] = [];
       const event = parseAbiItem(eventSignature);
 
       // Get events from earliest to latest
-      while (fromBlock <= endBlock && fromBlock <= _toBlock) {
+      while (fromBlock <= _toBlock) {
+        const tempBlockLimit = fromBlock + BigInt(maxBlocksPerCall);
         const logs: Log[] = await publicClient.getLogs({
           address: contractAddress,
           event: event as AbiEvent,
           fromBlock: fromBlock,
-          toBlock: endBlock,
+          toBlock: tempBlockLimit,
         });
 
         if (logs && logs.length > 0) {
@@ -70,14 +70,9 @@ function useFetchContractEvents({
           allEvents = [...allEvents, ...logEvents];
         }
 
-        fromBlock = endBlock + BigInt(1);
-        endBlock = fromBlock + BigInt(maxBlocksPerCall);
-        if (endBlock > _toBlock) {
-          endBlock = _toBlock;
-        }
+        fromBlock = tempBlockLimit;
       }
-
-      setEvents(allEvents);
+      setEvents(allEvents.reverse());
       setIsLoadingEvents(false);
     };
 
