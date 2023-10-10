@@ -32,6 +32,10 @@ function useFetchContractEvents({
 
   useEffect(() => {
     const getContractLogs = async () => {
+      if (!fromBlock) {
+        return;
+      }
+
       console.log(`Fetching ${eventName} events...`);
       setIsLoadingEvents(true);
 
@@ -72,9 +76,7 @@ function useFetchContractEvents({
       setIsLoadingEvents(false);
     };
 
-    if (fromBlock) {
-      getContractLogs();
-    }
+    getContractLogs();
   }, [fromBlock]);
 
   return { isLoadingEvents };
