@@ -10,7 +10,7 @@ interface FetchEventsOptions {
   eventName: string;
   abi: Abi;
   maxBlocksPerCall: number;
-  fromBlock: bigint ;
+  fromBlock: bigint;
   toBlock?: bigint;
   setEvents: (events: string[]) => void;
 }
@@ -42,7 +42,7 @@ function useFetchContractEvents({
 
       // Get events from earliest to latest
       while (fromBlock <= _toBlock) {
-        const tempBlockLimit = fromBlock + BigInt(maxBlocksPerCall)
+        const tempBlockLimit = fromBlock + BigInt(maxBlocksPerCall);
         const logs: Log[] = await publicClient.getLogs({
           address: contractAddress,
           event: event as AbiEvent,

@@ -13,8 +13,14 @@ import {
   useNetwork,
   WalletClient,
 } from "wagmi";
-import { Hex, WatchContractEventReturnType, Abi, createPublicClient, EIP1193RequestFn, TransportConfig, http } from "viem";
-import { polygon } from 'viem/chains'
+import {
+  Hex,
+  WatchContractEventReturnType,
+  Abi,
+  createPublicClient,
+  http,
+} from "viem";
+import { polygon } from "viem/chains";
 
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
@@ -43,11 +49,9 @@ import useFetchTokenData from "../hooks/useFetchTokenData";
 import useFetchContractEvents from "../hooks/useFetchEvents";
 
 import {
-  POLYGON_CHAIN_ID,
   POLYGON_DOMAIN_ID,
   POLYGON_WETH,
   POLYGON_TARGET_CONTRACT,
-  MAX_BLOCKS_LOOKBACK,
 } from "../constants/constants";
 
 const HomePage: NextPage = () => {
@@ -59,8 +63,10 @@ const HomePage: NextPage = () => {
   // const polygonClient = usePublicClient({ chainId: POLYGON_CHAIN_ID });
   const polygonClient = createPublicClient({
     chain: polygon,
-    transport: http('https://polygon-mainnet.g.alchemy.com/v2/9szz3Oqt_kKUT0OC8bD_LzDUO0rskcIW')
-  })
+    transport: http(
+      "https://polygon-mainnet.g.alchemy.com/v2/9szz3Oqt_kKUT0OC8bD_LzDUO0rskcIW",
+    ),
+  });
 
   const publicClient = usePublicClient();
   const { chain } = useNetwork();
@@ -95,7 +101,6 @@ const HomePage: NextPage = () => {
   });
 
   const [sendEnabled, setSendEnabled] = useState<boolean>(false);
-
 
   const { isLoadingEvents: isLoadingGreetings } = useFetchContractEvents({
     publicClient: polygonClient,
@@ -213,8 +218,8 @@ const HomePage: NextPage = () => {
         toast.success("The greeting was updated!");
       } else if (greetingList.length == 0) {
         // Grab current greeting regardless of lookback
-        const updatedList = [data as string, ...greetingList]
-        setGreetingList(updatedList)
+        const updatedList = [data as string, ...greetingList];
+        setGreetingList(updatedList);
       }
     };
 
@@ -249,7 +254,11 @@ const HomePage: NextPage = () => {
 
   // Calculates fees on user input
   useEffect(() => {
-    if(parseFloat(amountIn.toString()) === 0 || amountIn.toString().length === 0 ) return
+    if (
+      parseFloat(amountIn.toString()) === 0 ||
+      amountIn.toString().length === 0
+    )
+      return;
     const delayDebounceFn = setTimeout(() => {
       if (connextService && selectedAsset) {
         const originRpc = walletClient?.chain.rpcUrls.default.http[0] ?? "";
@@ -463,8 +472,8 @@ const HomePage: NextPage = () => {
                   {balance
                     ? balance
                     : chain?.id !== 0
-                      ? "(select a token)"
-                      : "Wallet not connected"}{" "}
+                    ? "(select a token)"
+                    : "Wallet not connected"}{" "}
                   {selectedAsset?.symbol === balanceData?.symbol &&
                     balanceData?.symbol}
                 </p>
@@ -600,10 +609,11 @@ const HomePage: NextPage = () => {
                     console.log("Connext Service not inited");
                   }
                 }}
-                className={`w-full px-2 py-4 mt-2 rounded ${sendEnabled
+                className={`w-full px-2 py-4 mt-2 rounded ${
+                  sendEnabled
                     ? "bg-gradient-to-r from-[#29C1FC] via-[#587BFD] to-[#AB00FF] hover:from-[#AB00FF] hover:via-[#D86292] hover:to-[#FBB03B] text-white cursor-pointer"
                     : "bg-stone-400 text-stone-600 cursor-not-allowed"
-                  }`}
+                }`}
                 disabled={!sendEnabled}
               >
                 Send

@@ -2,10 +2,8 @@ import {
   getPoolFeeForUniV3,
   getSwapAndXcallAddress,
   getXCallCallData,
-  prepareSwapAndXCall,
   getSupportedAssetsForDomain,
   getPriceImpactForSwaps,
-  getEstimateAmountReceived,
 } from "@connext/chain-abstraction";
 import {
   DestinationCallDataParams,
@@ -15,7 +13,7 @@ import {
 } from "@connext/chain-abstraction/dist/types";
 import { SdkConfig, create } from "@connext/sdk";
 import axios from "axios";
-import { BigNumber, BigNumberish } from "ethers";
+import { BigNumberish } from "ethers";
 
 interface DomainID {
   [key: number]: string;
@@ -89,8 +87,10 @@ export default class ConnextService {
     signerAddress: string,
   ) {
     // return prepareSwapAndXCall(swapAndXCallParams, signerAddress, {apiKey:"f5GTHProMkymbSTfaeRSJQXZxrpngQwK"});
-    const res = await axios.get("http://localhost:8080/prepareSwapAndXcall", {
-      params: { swapAndXCallParams, signerAddress },
+
+    const res = await axios.post("/api/prepareswapandxcall", {
+      swapAndXCallParams,
+      signerAddress,
     });
     return res.data;
   }
@@ -103,7 +103,6 @@ export default class ConnextService {
     const { sdkBase } = await create(this.sdkConfig);
     return sdkBase.getSupported();
   }
-
 
   async approveIfNeeded(
     domainId: string,
@@ -135,10 +134,7 @@ export default class ConnextService {
 
   async getEstimateAmountReceivedHelper(_args: EstimateQuoteAmountArgs) {
     try {
-      const res = await axios.get(
-        "http://localhost:8080/getEstimateAmountReceived",
-        { params: _args },
-      );
+      const res = await axios.get("/api/getestimateamount", { params: _args });
       return res.data;
     } catch (err) {
       console.log(err);

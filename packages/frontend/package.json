@@ -3,9 +3,10 @@
   "private": true,
   "version": "0.1.0",
   "dependencies": {
-    "@connext/chain-abstraction": "1.0.2",
+    "@connext/chain-abstraction": "1.0.4",
     "@connext/sdk": "2.1.1",
     "@rainbow-me/rainbowkit": "1.0.5",
+    "@types/cors": "^2.8.14",
     "@walletconnect/modal": "^2.5.9",
     "abitype": "^0.9.2",
     "axios": "^1.5.1",
@@ -27,12 +28,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --ext .ts,.tsx",
-    "api": "node server/server.js",
-    "api:build": "next build",
-    "api:start": "NODE_ENV=production node server.js"
+    "lint": "eslint . --ext .ts,.tsx"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.14",
     "@types/node": "^20.3.2",
     "@types/react": "^18.2.14",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
